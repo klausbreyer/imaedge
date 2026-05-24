@@ -12,7 +12,7 @@ defmodule Imaedge.Workers.IngestWorker do
     session = Repo.get!(UploadSession, args["upload_session_id"])
     image = image_for(args, session)
 
-    case ingest(session, image) do
+    case safe_ingest(session, image) do
       {:ok, _image} ->
         Uploads.delete_temp(session)
         Media.update_upload_session(session, %{status: "done", error_message: nil})
@@ -26,6 +26,14 @@ defmodule Imaedge.Workers.IngestWorker do
       {:error, reason} ->
         {:error, reason}
     end
+  end
+
+  defp safe_ingest(session, image) do
+    ingest(session, image)
+  rescue
+    exception -> {:error, Exception.format(:error, exception, __STACKTRACE__)}
+  catch
+    kind, reason -> {:error, Exception.format(kind, reason, __STACKTRACE__)}
   end
 
   defp ingest(%UploadSession{} = session, %Image{} = image) do
@@ -159,7 +167,60 @@ defmodule Imaedge.Workers.IngestWorker do
   end
 
   defp gps_value(exif, key) do
-    gps = exif[:gps] || %{}
-    gps[key] || gps[to_string(key)]
+    gps = exif[:gps] || exif["gps"] || exif["GPS"] || %{}
+    value = gps_coordinate(gps, key)
+    ref = gps_ref(gps, key)
+
+    decimal_gps(value, ref)
+  end
+
+  defp gps_coordinate(gps, :latitude) do
+    gps_get(gps, :latitude) || gps_get(gps, :gps_latitude) || gps_get(gps, "GPSLatitude")
+  end
+
+  defp gps_coordinate(gps, :longitude) do
+    gps_get(gps, :longitude) || gps_get(gps, :gps_longitude) || gps_get(gps, "GPSLongitude")
+  end
+
+  defp gps_ref(gps, :latitude) do
+    gps_get(gps, :latitude_ref) || gps_get(gps, :gps_latitude_ref) ||
+      gps_get(gps, "GPSLatitudeRef")
+  end
+
+  defp gps_ref(gps, :longitude) do
+    gps_get(gps, :longitude_ref) || gps_get(gps, :gps_longitude_ref) ||
+      gps_get(gps, "GPSLongitudeRef")
+  end
+
+  defp gps_get(gps, key) when is_map(gps), do: Map.get(gps, key)
+  defp gps_get(_gps, _key), do: nil
+
+  defp decimal_gps(nil, _ref), do: nil
+
+  defp decimal_gps([degrees, minutes, seconds], ref) do
+    value = to_float(degrees) + to_float(minutes) / 60 + to_float(seconds) / 3600
+    value |> signed_gps(ref) |> Decimal.from_float()
+  end
+
+  defp decimal_gps(value, ref) when is_integer(value) or is_float(value) do
+    value |> to_float() |> signed_gps(ref) |> Decimal.from_float()
+  end
+
+  defp decimal_gps(_value, _ref), do: nil
+
+  defp signed_gps(value, ref) when ref in ["S", "W"], do: -value
+  defp signed_gps(value, _ref), do: value
+
+  defp to_float(value) when is_float(value), do: value
+  defp to_float(value) when is_integer(value), do: value / 1
+
+  defp to_float(value) do
+    value
+    |> to_string()
+    |> Float.parse()
+    |> case do
+      {number, _rest} -> number
+      :error -> 0.0
+    end
   end
 end

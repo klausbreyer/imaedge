@@ -212,7 +212,7 @@ defmodule ImaedgeWeb.CollectionLive do
                 field={time_form(image)[:datetime]}
                 type="datetime-local"
                 label="Album time"
-                step="0.000001"
+                step="1"
               />
               <button type="submit">Save time</button>
             </.form>
@@ -240,8 +240,7 @@ defmodule ImaedgeWeb.CollectionLive do
   defp time_form(image) do
     value =
       image.effective_taken_at
-      |> DateTime.to_naive()
-      |> NaiveDateTime.to_iso8601()
+      |> Calendar.strftime("%Y-%m-%dT%H:%M:%S")
 
     to_form(%{"datetime" => value}, as: :time_edit)
   end
