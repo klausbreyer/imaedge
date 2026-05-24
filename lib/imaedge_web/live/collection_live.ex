@@ -172,7 +172,7 @@ defmodule ImaedgeWeb.CollectionLive do
 
             <div class="tile-meta">
               <span>{image.contributor_id}</span>
-              <span>{format_time(image.effective_taken_at)}</span>
+              <span>{format_time(image.effective_taken_at, image.timezone_offset_minutes)}</span>
             </div>
 
             <div class="tile-actions">
@@ -235,11 +235,16 @@ defmodule ImaedgeWeb.CollectionLive do
     |> stream(:uploads, uploads, reset: true)
   end
 
-  defp format_time(datetime), do: Calendar.strftime(datetime, "%Y-%m-%d %H:%M:%S")
+  defp format_time(datetime, offset_minutes) do
+    datetime
+    |> shift_to_album_offset(offset_minutes)
+    |> Calendar.strftime("%Y-%m-%d %H:%M:%S")
+  end
 
   defp time_form(image) do
     value =
       image.effective_taken_at
+      |> shift_to_album_offset(image.timezone_offset_minutes)
       |> Calendar.strftime("%Y-%m-%dT%H:%M:%S")
 
     to_form(%{"datetime" => value}, as: :time_edit)
@@ -253,7 +258,18 @@ defmodule ImaedgeWeb.CollectionLive do
 
   defp download_name(image, index) do
     number = String.pad_leading(to_string(index), 4, "0")
-    time = Calendar.strftime(image.effective_taken_at, "%Y%m%d-%H%M%S")
+
+    time =
+      image.effective_taken_at
+      |> shift_to_album_offset(image.timezone_offset_minutes)
+      |> Calendar.strftime("%Y%m%d-%H%M%S")
+
     "#{number}-#{time}-#{Media.sanitize_filename(image.original_filename)}"
   end
+
+  defp shift_to_album_offset(datetime, offset_minutes) when is_integer(offset_minutes) do
+    DateTime.add(datetime, offset_minutes * 60, :second)
+  end
+
+  defp shift_to_album_offset(datetime, _offset_minutes), do: datetime
 end

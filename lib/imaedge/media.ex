@@ -188,7 +188,7 @@ defmodule Imaedge.Media do
   def update_effective_time(%Collection{} = collection, image_public_id, iso_datetime) do
     with image when not is_nil(image) <-
            Repo.get_by(Image, collection_id: collection.id, public_id: image_public_id),
-         {:ok, datetime} <- parse_album_datetime(iso_datetime),
+         {:ok, datetime} <- parse_album_datetime(iso_datetime, image.timezone_offset_minutes),
          {:ok, image} <- Image.changeset(image, %{effective_taken_at: datetime}) |> Repo.update() do
       broadcast(collection, {:image_changed, image})
       {:ok, image}
@@ -366,18 +366,27 @@ defmodule Imaedge.Media do
     end)
   end
 
-  defp parse_album_datetime(value) do
+  defp parse_album_datetime(value, offset_minutes) do
     case DateTime.from_iso8601(value) do
       {:ok, datetime, _offset} ->
         {:ok, datetime}
 
       {:error, _reason} ->
         case NaiveDateTime.from_iso8601(value) do
-          {:ok, naive_datetime} -> {:ok, DateTime.from_naive!(naive_datetime, "Etc/UTC")}
+          {:ok, naive_datetime} -> {:ok, naive_to_utc(naive_datetime, offset_minutes)}
           {:error, reason} -> {:error, reason}
         end
     end
   end
+
+  defp naive_to_utc(naive_datetime, offset_minutes) when is_integer(offset_minutes) do
+    naive_datetime
+    |> DateTime.from_naive!("Etc/UTC")
+    |> DateTime.add(-offset_minutes * 60, :second)
+  end
+
+  defp naive_to_utc(naive_datetime, _offset_minutes),
+    do: DateTime.from_naive!(naive_datetime, "Etc/UTC")
 
   defp schedule_hard_delete(image_id, delete_after) do
     delay = max(DateTime.diff(delete_after, DateTime.utc_now(:microsecond), :millisecond), 0)

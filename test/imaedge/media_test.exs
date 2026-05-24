@@ -65,6 +65,17 @@ defmodule Imaedge.MediaTest do
     assert image.effective_taken_at == ~U[2026-05-24 17:23:05.219183Z]
   end
 
+  test "update_effective_time keeps the image timezone for datetime-local input" do
+    {:ok, collection} = Media.create_collection()
+    image = insert_image!(collection, "first", ~U[2026-05-24 12:00:00.000000Z], 1)
+    {:ok, image} = Image.changeset(image, %{timezone_offset_minutes: -600}) |> Repo.update()
+
+    assert {:ok, image} =
+             Media.update_effective_time(collection, image.public_id, "2025-07-28T10:32:48")
+
+    assert DateTime.compare(image.effective_taken_at, ~U[2025-07-28 20:32:48Z]) == :eq
+  end
+
   defp insert_image!(collection, public_id, effective_taken_at, index) do
     %Image{}
     |> Image.changeset(%{

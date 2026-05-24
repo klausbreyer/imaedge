@@ -81,6 +81,7 @@ defmodule Imaedge.Workers.IngestWorker do
   defp original_path(%Image{} = image) do
     case Storage.fetch_to_temp(image.original_key) do
       {:ok, path} -> {:ok, path}
+      {:error, reason} -> {:error, reason}
       :error -> {:error, :storage_adapter_cannot_provide_local_path}
     end
   end
@@ -121,11 +122,11 @@ defmodule Imaedge.Workers.IngestWorker do
     offset = session.timezone_offset_minutes
 
     case parse_exif_datetime(exif, offset) do
-      {:ok, datetime} ->
+      {:ok, datetime, timezone_offset_minutes} ->
         %{
           original_taken_at: datetime,
           effective_taken_at: datetime,
-          timezone_offset_minutes: offset,
+          timezone_offset_minutes: timezone_offset_minutes,
           time_source: "exif"
         }
 
@@ -141,29 +142,109 @@ defmodule Imaedge.Workers.IngestWorker do
     end
   end
 
-  defp parse_exif_datetime(exif, offset_minutes) do
-    value = exif[:datetime_original] || exif["DateTimeOriginal"] || exif[:datetime]
-
-    with value when is_binary(value) <- value,
-         [date, time] <- String.split(value, " ", parts: 2),
-         [year, month, day] <- String.split(date, ":"),
-         [hour, minute, second] <- String.split(time, ":"),
-         {:ok, naive} <-
-           NaiveDateTime.new(
-             String.to_integer(year),
-             String.to_integer(month),
-             String.to_integer(day),
-             String.to_integer(hour),
-             String.to_integer(minute),
-             String.to_integer(second)
-           ) do
-      offset_seconds = (offset_minutes || 0) * 60
-      {:ok, DateTime.from_naive!(naive, "Etc/UTC") |> DateTime.add(-offset_seconds, :second)}
+  defp parse_exif_datetime(exif, fallback_offset_minutes) do
+    with {:ok, naive} <- exif_datetime_original(exif),
+         offset_minutes <- exif_timezone_offset(exif) || fallback_offset_minutes || 0 do
+      offset_seconds = offset_minutes * 60
+      datetime = DateTime.from_naive!(naive, "Etc/UTC") |> DateTime.add(-offset_seconds, :second)
+      {:ok, datetime, offset_minutes}
     else
       _ -> :error
     end
   rescue
     _ -> :error
+  end
+
+  defp exif_datetime_original(exif) do
+    exif_data = exif_section(exif)
+
+    value =
+      exif_data[:datetime_original] ||
+        exif_data["DateTimeOriginal"] ||
+        exif_data[:datetime] ||
+        exif[:datetime_original] ||
+        exif["DateTimeOriginal"] ||
+        exif[:modify_date]
+
+    naive_datetime(value)
+  end
+
+  defp naive_datetime(%NaiveDateTime{} = datetime), do: {:ok, datetime}
+
+  defp naive_datetime(value) when is_binary(value) do
+    value = String.replace(value, "T", " ")
+
+    with [date, time] <- String.split(value, " ", parts: 2),
+         [year, month, day] <- split_exif_date(date),
+         [hour, minute, second] <- String.split(time, ":"),
+         {second, microsecond} <- second_and_microsecond(second) do
+      NaiveDateTime.new(
+        String.to_integer(year),
+        String.to_integer(month),
+        String.to_integer(day),
+        String.to_integer(hour),
+        String.to_integer(minute),
+        second,
+        microsecond
+      )
+    else
+      _ -> :error
+    end
+  end
+
+  defp naive_datetime(_value), do: :error
+
+  defp split_exif_date(date) do
+    if String.contains?(date, ":") do
+      String.split(date, ":")
+    else
+      String.split(date, "-")
+    end
+  end
+
+  defp second_and_microsecond(value) do
+    case String.split(value, ".", parts: 2) do
+      [second] ->
+        {String.to_integer(second), {0, 0}}
+
+      [second, fraction] ->
+        fraction = fraction |> String.slice(0, 6) |> String.pad_trailing(6, "0")
+        {String.to_integer(second), {String.to_integer(fraction), 6}}
+    end
+  end
+
+  defp exif_timezone_offset(exif) do
+    exif_data = exif_section(exif)
+
+    value =
+      exif_data[:datetime_original_offset] ||
+        exif_data[:time_offset] ||
+        exif_data["OffsetTimeOriginal"] ||
+        exif_data["TimeOffset"] ||
+        exif[:time_offset] ||
+        exif["OffsetTimeOriginal"]
+
+    parse_offset_minutes(value)
+  end
+
+  defp parse_offset_minutes(value) when is_binary(value) do
+    with [hours, minutes] <- String.split(value, ":", parts: 2),
+         {hours, ""} <- Integer.parse(hours),
+         {minutes, ""} <- Integer.parse(minutes) do
+      sign = if String.starts_with?(value, "-"), do: -1, else: 1
+      sign * (abs(hours) * 60 + minutes)
+    else
+      _ -> nil
+    end
+  end
+
+  defp parse_offset_minutes(_value), do: nil
+
+  defp exif_section(exif) do
+    case exif[:exif] || exif["Exif"] || exif["exif"] do
+      section when is_map(section) -> section
+      _other -> %{}
+    end
   end
 
   defp gps_value(exif, key) do
