@@ -260,6 +260,11 @@ select {
   color: var(--ink);
 }
 
+.file-button {
+  position: relative;
+  overflow: hidden;
+}
+
 .workspace-head,
 .export-head {
   display: flex;
@@ -313,10 +318,11 @@ select {
 
 .file-button input {
   position: absolute;
-  width: 1px;
-  height: 1px;
+  inset: 0;
+  width: 100%;
+  height: 100%;
   opacity: 0;
-  pointer-events: none;
+  cursor: pointer;
 }
 
 .queue-controls {
@@ -449,6 +455,10 @@ select {
   margin-top: 8px;
 }
 
+.tile-time {
+  display: none;
+}
+
 .tile-actions,
 .row-actions {
   display: grid;
@@ -463,15 +473,42 @@ select {
   padding: 8px;
 }
 
-.image-tile form {
-  display: grid;
-  gap: 8px;
-  margin-top: 10px;
+.time-editor-overlay {
+  display: none;
 }
 
-.image-tile form label {
+.time-editor-backdrop {
+  display: none;
+}
+
+.undo-delete {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+  border: 1px solid var(--line);
+  background: var(--field);
   color: var(--muted);
+  padding: 10px;
+}
+
+.undo-delete span {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   font-size: 12px;
+}
+
+.undo-delete button {
+  display: inline-flex;
+  min-height: 36px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--ink);
+  border-radius: 6px;
+  background: var(--ink);
+  color: #fff;
+  cursor: pointer;
+  padding: 8px 12px;
 }
 
 .empty-state {
@@ -493,6 +530,10 @@ select {
 }
 
 @media (max-width: 720px) {
+  .site-main {
+    padding: 0 8px 32px;
+  }
+
   .start-shell,
   .workspace-head,
   .export-head,
@@ -504,10 +545,15 @@ select {
   .start-shell,
   .workspace-head,
   .export-head,
-  .panel-head,
-  .section-title {
+  .panel-head {
     flex-direction: column;
     align-items: stretch;
+  }
+
+  .upload-panel,
+  .server-uploads,
+  .gallery-section {
+    padding: 10px;
   }
 
   .queue-row,
@@ -515,7 +561,164 @@ select {
     grid-template-columns: 1fr;
   }
 
+  .gallery-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .image-tile {
+    min-width: 0;
+    padding: 4px;
+  }
+
+  .tile-meta {
+    display: block;
+    margin-top: 4px;
+    font-size: 11px;
+    line-height: 1.15;
+  }
+
+  .tile-meta span:first-child {
+    display: none;
+  }
+
+  .tile-meta span,
+  .tile-meta button {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .tile-time {
+    display: block;
+    font-size: 0;
+    text-align: left;
+  }
+
+  .tile-time::after,
+  .tile-time::before {
+    display: block;
+    font-size: 11px;
+  }
+
+  .tile-time::before {
+    content: attr(data-mobile-date);
+  }
+
+  .tile-time::after {
+    content: attr(data-mobile-time);
+  }
+
   .tile-actions {
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 3px;
+    margin-top: 5px;
+  }
+
+  .tile-actions button,
+  .tile-actions a {
+    min-height: 28px;
+    border-radius: 4px;
+    padding: 3px;
+  }
+
+  .tile-actions svg {
+    width: 14px;
+    height: 14px;
+  }
+
+}
+
+.time-editor-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  align-items: end;
+  padding: 16px;
+}
+
+.time-editor-backdrop {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  background: rgba(22, 21, 18, 0.62);
+  cursor: pointer;
+}
+
+.time-editor-card {
+  position: relative;
+  width: min(100%, 520px);
+  margin: 0 auto;
+  border: 1px solid var(--line);
+  background:
+    linear-gradient(90deg, rgba(22, 21, 18, 0.035) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(22, 21, 18, 0.03) 1px, transparent 1px),
+    var(--panel);
+  background-size: 24px 24px;
+  padding: 14px;
+  box-shadow: 0 22px 70px rgba(22, 21, 18, 0.34);
+}
+
+.time-editor-head {
+  display: grid;
+  grid-template-columns: 58px minmax(0, 1fr) 42px;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.time-editor-head img {
+  width: 58px;
+  height: 58px;
+  object-fit: cover;
+  border: 1px solid var(--line);
+  background: var(--field);
+}
+
+.time-editor-head strong {
+  display: block;
+  overflow: hidden;
+  color: var(--muted);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.time-editor-head button,
+.time-editor-card form button {
+  display: inline-flex;
+  min-height: 42px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--ink);
+  border-radius: 6px;
+  background: var(--ink);
+  color: #fff;
+  cursor: pointer;
+}
+
+.time-editor-card form {
+  display: grid;
+  gap: 10px;
+}
+
+.time-editor-card form label {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.time-editor-card input {
+  width: 100%;
+}
+
+@media (min-width: 721px) {
+  .time-editor-overlay {
+    align-items: center;
   }
 }

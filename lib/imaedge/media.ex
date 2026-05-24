@@ -372,12 +372,28 @@ defmodule Imaedge.Media do
         {:ok, datetime}
 
       {:error, _reason} ->
-        case NaiveDateTime.from_iso8601(value) do
+        case parse_naive_album_datetime(value) do
           {:ok, naive_datetime} -> {:ok, naive_to_utc(naive_datetime, offset_minutes)}
           {:error, reason} -> {:error, reason}
         end
     end
   end
+
+  defp parse_naive_album_datetime(value) when is_binary(value) do
+    value
+    |> normalize_datetime_local()
+    |> NaiveDateTime.from_iso8601()
+  end
+
+  defp parse_naive_album_datetime(value), do: NaiveDateTime.from_iso8601(value)
+
+  defp normalize_datetime_local(
+         <<date::binary-size(10), "T", hour::binary-size(2), ":", minute::binary-size(2)>>
+       ) do
+    "#{date}T#{hour}:#{minute}:00"
+  end
+
+  defp normalize_datetime_local(value), do: value
 
   defp naive_to_utc(naive_datetime, offset_minutes) when is_integer(offset_minutes) do
     naive_datetime
