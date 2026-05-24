@@ -8,6 +8,7 @@ defmodule Imaedge.Media do
   alias Imaedge.Storage
 
   @topic_prefix "collection:"
+  @rebalance_step_microseconds 1_000_000
 
   def create_collection do
     %Collection{}
@@ -173,9 +174,8 @@ defmodule Imaedge.Media do
     index = Enum.find_index(images, &(&1.public_id == image_public_id))
 
     with index when is_integer(index) <- index,
-         {:ok, new_time} <- shifted_time(images, index, direction),
          image <- Enum.at(images, index),
-         {:ok, image} <- Image.changeset(image, %{effective_taken_at: new_time}) |> Repo.update() do
+         {:ok, image} <- move_image_at(collection, images, image, index, direction) do
       broadcast(collection, {:images_reordered, collection.public_id})
       {:ok, image}
     else
@@ -188,7 +188,7 @@ defmodule Imaedge.Media do
   def update_effective_time(%Collection{} = collection, image_public_id, iso_datetime) do
     with image when not is_nil(image) <-
            Repo.get_by(Image, collection_id: collection.id, public_id: image_public_id),
-         {:ok, datetime, _offset} <- DateTime.from_iso8601(iso_datetime),
+         {:ok, datetime} <- parse_album_datetime(iso_datetime),
          {:ok, image} <- Image.changeset(image, %{effective_taken_at: datetime}) |> Repo.update() do
       broadcast(collection, {:image_changed, image})
       {:ok, image}
@@ -274,6 +274,19 @@ defmodule Imaedge.Media do
     end
   end
 
+  defp move_image_at(collection, images, image, index, direction) do
+    case shifted_time(images, index, direction) do
+      {:ok, {:time, new_time}} ->
+        Image.changeset(image, %{effective_taken_at: new_time}) |> Repo.update()
+
+      {:ok, {:rebalance, reordered_images}} ->
+        rebalance_images(collection, reordered_images, image.public_id)
+
+      other ->
+        other
+    end
+  end
+
   defp shifted_time(images, index, "earlier") when index <= 0 or length(images) <= 1, do: :edge
 
   defp shifted_time(images, index, "earlier") do
@@ -285,7 +298,7 @@ defmodule Imaedge.Media do
         image -> image.effective_taken_at
       end
 
-    {:ok, midpoint(left, right)}
+    midpoint_or_rebalance(left, right, images, index, index - 1)
   end
 
   defp shifted_time(images, index, "later") when index >= length(images) - 1, do: :edge
@@ -299,13 +312,71 @@ defmodule Imaedge.Media do
         image -> image.effective_taken_at
       end
 
-    {:ok, midpoint(left, right)}
+    midpoint_or_rebalance(left, right, images, index, index + 1)
+  end
+
+  defp midpoint_or_rebalance(left, right, images, index, new_index) do
+    case midpoint(left, right) do
+      {:ok, time} -> {:ok, {:time, time}}
+      :no_space -> {:ok, {:rebalance, move_in_list(images, index, new_index)}}
+    end
   end
 
   defp midpoint(left, right) do
     diff = DateTime.diff(right, left, :microsecond)
-    step = if diff <= 1, do: 1, else: div(diff, 2)
-    DateTime.add(left, step, :microsecond)
+
+    if diff > 1 do
+      {:ok, DateTime.add(left, div(diff, 2), :microsecond)}
+    else
+      :no_space
+    end
+  end
+
+  defp move_in_list(items, index, new_index) do
+    item = Enum.at(items, index)
+
+    items
+    |> List.delete_at(index)
+    |> List.insert_at(new_index, item)
+  end
+
+  defp rebalance_images(_collection, images, moved_public_id) do
+    base = earliest_time(images)
+
+    Repo.transaction(fn ->
+      images
+      |> Enum.with_index()
+      |> Enum.map(fn {image, index} ->
+        new_time = DateTime.add(base, index * @rebalance_step_microseconds, :microsecond)
+        image |> Image.changeset(%{effective_taken_at: new_time}) |> Repo.update!()
+      end)
+    end)
+    |> case do
+      {:ok, images} -> {:ok, Enum.find(images, &(&1.public_id == moved_public_id))}
+      {:error, reason} -> {:error, reason}
+    end
+  end
+
+  defp earliest_time([image | images]) do
+    Enum.reduce(images, image.effective_taken_at, fn image, earliest ->
+      case DateTime.compare(image.effective_taken_at, earliest) do
+        :lt -> image.effective_taken_at
+        _other -> earliest
+      end
+    end)
+  end
+
+  defp parse_album_datetime(value) do
+    case DateTime.from_iso8601(value) do
+      {:ok, datetime, _offset} ->
+        {:ok, datetime}
+
+      {:error, _reason} ->
+        case NaiveDateTime.from_iso8601(value) do
+          {:ok, naive_datetime} -> {:ok, DateTime.from_naive!(naive_datetime, "Etc/UTC")}
+          {:error, reason} -> {:error, reason}
+        end
+    end
   end
 
   defp schedule_hard_delete(image_id, delete_after) do

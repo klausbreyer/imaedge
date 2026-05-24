@@ -208,7 +208,12 @@ defmodule ImaedgeWeb.CollectionLive do
 
             <.form for={time_form(image)} id={"time-form-#{image.public_id}"} phx-submit="set_time">
               <input type="hidden" name="image-id" value={image.public_id} />
-              <.input field={time_form(image)[:datetime]} type="text" label="Album time" />
+              <.input
+                field={time_form(image)[:datetime]}
+                type="datetime-local"
+                label="Album time"
+                step="0.000001"
+              />
               <button type="submit">Save time</button>
             </.form>
           </article>
@@ -233,7 +238,12 @@ defmodule ImaedgeWeb.CollectionLive do
   defp format_time(datetime), do: Calendar.strftime(datetime, "%Y-%m-%d %H:%M:%S")
 
   defp time_form(image) do
-    to_form(%{"datetime" => DateTime.to_iso8601(image.effective_taken_at)}, as: :time_edit)
+    value =
+      image.effective_taken_at
+      |> DateTime.to_naive()
+      |> NaiveDateTime.to_iso8601()
+
+    to_form(%{"datetime" => value}, as: :time_edit)
   end
 
   defp download_names(images) do
