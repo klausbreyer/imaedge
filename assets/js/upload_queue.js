@@ -217,6 +217,16 @@ export const UploadQueue = {
       }
 
       const status = await this.fetchStatus(record)
+      if (status.duplicate) {
+        record.status = "already present"
+        record.progress = 100
+        await deleteRecord(record.id)
+        this.log(`server duplicate ${record.name}, local copy released`)
+        this.removeSoon(record)
+        this.updateStorageEstimate()
+        return
+      }
+
       if (["processing", "done"].includes(status.status)) {
         record.status = status.status === "done" ? "complete" : "processing"
         record.progress = 100
@@ -232,7 +242,16 @@ export const UploadQueue = {
 
       record.status = "finalizing"
       this.render()
-      await this.finalize(record)
+      const finalized = await this.finalize(record)
+      if (finalized.duplicate) {
+        record.status = "already present"
+        record.progress = 100
+        await deleteRecord(record.id)
+        this.log(`server duplicate ${record.name}, local copy released`)
+        this.removeSoon(record)
+        this.updateStorageEstimate()
+        return
+      }
 
       record.status = "processing"
       record.progress = 100

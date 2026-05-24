@@ -28,7 +28,7 @@ defmodule ImaedgeWeb.UploadController do
 
         case Media.create_upload_session(collection, attrs) do
           {:ok, session} ->
-            json(conn, upload_json(session))
+            json(conn, upload_json(collection, session))
 
           {:error, changeset} ->
             conn
@@ -42,7 +42,7 @@ defmodule ImaedgeWeb.UploadController do
     collection = Media.get_collection_by_public_id!(collection_id)
     session = Media.get_upload_session!(collection, upload_id)
 
-    json(conn, upload_json(session))
+    json(conn, upload_json(collection, session))
   end
 
   def chunk(conn, %{"collection_id" => collection_id, "upload_id" => upload_id, "index" => index}) do
@@ -80,9 +80,13 @@ defmodule ImaedgeWeb.UploadController do
         json(conn, %{status: session.status, image_id: image.public_id})
 
       {:error, {:missing_chunks, missing}} ->
-        conn
-        |> put_status(:conflict)
-        |> json(%{error: "missing_chunks", missing_chunks: missing})
+        if duplicate = Media.find_duplicate_image(collection, session.sha256) do
+          json(conn, %{duplicate: true, status: "done", image_id: duplicate.public_id})
+        else
+          conn
+          |> put_status(:conflict)
+          |> json(%{error: "missing_chunks", missing_chunks: missing})
+        end
 
       {:error, reason} ->
         conn
@@ -91,7 +95,15 @@ defmodule ImaedgeWeb.UploadController do
     end
   end
 
-  defp upload_json(session) do
+  defp upload_json(collection, session) do
+    duplicate = duplicate_image(collection, session)
+
+    session
+    |> session_json()
+    |> maybe_put_duplicate(duplicate)
+  end
+
+  defp session_json(session) do
     %{
       id: session.public_id,
       status: session.status,
@@ -100,6 +112,21 @@ defmodule ImaedgeWeb.UploadController do
       missing_chunks: Uploads.missing_chunks(session),
       error_message: session.error_message
     }
+  end
+
+  defp duplicate_image(_collection, %{status: status}) when status in ["processing", "done"],
+    do: nil
+
+  defp duplicate_image(collection, session) do
+    Media.find_duplicate_image(collection, session.sha256)
+  end
+
+  defp maybe_put_duplicate(json, nil), do: json
+
+  defp maybe_put_duplicate(json, duplicate) do
+    json
+    |> Map.put(:duplicate, true)
+    |> Map.put(:image_id, duplicate.public_id)
   end
 
   defp read_chunk_body(conn, chunk_size) do
