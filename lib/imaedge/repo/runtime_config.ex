@@ -35,7 +35,9 @@ defmodule Imaedge.Repo.RuntimeConfig do
 
         case Map.get(query_params, "sslmode") do
           "verify-full" ->
-            root_cert = Map.get(query_params, "sslrootcert") || System.get_env("PGSSLROOTCERT") || "sqlca.pem"
+            root_cert =
+              Map.get(query_params, "sslrootcert") || System.get_env("PGSSLROOTCERT") ||
+                "sqlca.pem"
 
             [
               ssl: [
@@ -51,7 +53,8 @@ defmodule Imaedge.Repo.RuntimeConfig do
           "require" ->
             [ssl: [verify: :verify_none]]
 
-          _other -> []
+          _other ->
+            []
         end
     end
   end

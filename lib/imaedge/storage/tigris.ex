@@ -63,7 +63,10 @@ defmodule Imaedge.Storage.Tigris do
   end
 
   defp signed_headers(method, url, headers, body) do
-    {:ok, signed_headers} =
+    host = url |> URI.parse() |> Map.fetch!(:host)
+    headers = [{"host", host} | headers]
+
+    signed_headers =
       :aws_signature.sign_v4(
         access_key_id(),
         secret_access_key(),
@@ -77,7 +80,9 @@ defmodule Imaedge.Storage.Tigris do
         uri_encode_path: false
       )
 
-    Enum.map(signed_headers, fn {key, value} -> {to_string(key), to_string(value)} end)
+    signed_headers
+    |> Enum.map(fn {key, value} -> {to_string(key), to_string(value)} end)
+    |> Enum.reject(fn {key, _value} -> String.downcase(key) == "host" end)
   end
 
   defp object_url(key) do

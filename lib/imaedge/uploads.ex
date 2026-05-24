@@ -23,6 +23,11 @@ defmodule Imaedge.Uploads do
     |> Enum.reject(&MapSet.member?(present, &1))
   end
 
+  def write_chunk(%UploadSession{status: status}, _index, _body)
+      when status in ["processing", "done"] do
+    {:ok, %{missing_chunks: []}}
+  end
+
   def write_chunk(%UploadSession{} = session, index, body)
       when is_integer(index) and index >= 0 and is_binary(body) do
     if index >= session.total_chunks do
@@ -35,6 +40,18 @@ defmodule Imaedge.Uploads do
       File.write!(path, body)
       Media.update_upload_session(session, %{status: "uploading"})
       {:ok, %{missing_chunks: missing_chunks(session)}}
+    end
+  end
+
+  def finalize(%UploadSession{status: status, object_key: object_key} = session)
+      when status in ["processing", "done"] and not is_nil(object_key) do
+    image = Repo.get_by(Imaedge.Media.Image, upload_session_id: session.id)
+
+    if image do
+      {:ok, session} = Media.update_upload_session(session, %{error_message: nil})
+      {:ok, %{session: session, image: image}}
+    else
+      do_finalize(session)
     end
   end
 
@@ -73,6 +90,7 @@ defmodule Imaedge.Uploads do
              status: "processing",
              object_key: object_key,
              original_url: original_url,
+             error_message: nil,
              finalized_at: DateTime.utc_now(:microsecond)
            }),
          {:ok, _job} <-

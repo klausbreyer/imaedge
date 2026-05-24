@@ -217,6 +217,16 @@ export const UploadQueue = {
       }
 
       const status = await this.fetchStatus(record)
+      if (["processing", "done"].includes(status.status)) {
+        record.status = status.status === "done" ? "complete" : "processing"
+        record.progress = 100
+        await deleteRecord(record.id)
+        this.log(`server already accepted ${record.name}, local copy released`)
+        this.removeSoon(record)
+        this.updateStorageEstimate()
+        return
+      }
+
       record.status = "uploading"
       await this.uploadMissingChunks(record, status.missing_chunks)
 
@@ -316,8 +326,8 @@ export const UploadQueue = {
     })
 
     const text = await response.text()
-    const body = text ? JSON.parse(text) : {}
-    if (!response.ok) throw new Error(`HTTP ${response.status}: ${text}`)
+    const body = text ? parseJsonOrText(text) : {}
+    if (!response.ok) throw new Error(`HTTP ${response.status}: ${typeof body === "string" ? body : JSON.stringify(body)}`)
     return body
   },
 
@@ -378,4 +388,12 @@ function escapeHtml(value) {
     "\"": "&quot;",
     "'": "&#039;"
   }[char]))
+}
+
+function parseJsonOrText(text) {
+  try {
+    return JSON.parse(text)
+  } catch (_error) {
+    return text
+  }
 }
