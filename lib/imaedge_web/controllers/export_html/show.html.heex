@@ -1,0 +1,28 @@
+<Layouts.app flash={@flash}>
+  <section class="export-head">
+    <div>
+      <p class="eyebrow">export</p>
+      <h1>Collection {@collection.public_id}</h1>
+    </div>
+    <a class="quiet-link" href={~p"/i/#{@collection.public_id}"}>Back to workspace</a>
+  </section>
+
+  <section class="export-list">
+    <%= for {image, index} <- Enum.with_index(@images, 1) do %>
+      <article class="export-item">
+        <a href={image.preview_large_url || image.original_url} class="export-preview">
+          <img
+            src={image.preview_small_url || image.original_url}
+            loading="lazy"
+            alt={"Image #{index}"}
+          />
+        </a>
+        <div class="export-meta">
+          <strong>{String.pad_leading(to_string(index), 4, "0")}</strong>
+          <span>{Calendar.strftime(image.effective_taken_at, "%Y%m%d-%H%M%S")}</span>
+          <a href={image.original_url} download={download_name(image, index)}>original</a>
+        </div>
+      </article>
+    <% end %>
+  </section>
+</Layouts.app>

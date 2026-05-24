@@ -1,0 +1,521 @@
+/* See the Tailwind configuration guide for advanced usage
+   https://tailwindcss.com/docs/configuration */
+
+@import "tailwindcss" source(none);
+@source "../css";
+@source "../js";
+@source "../../lib/imaedge_web";
+
+/* A Tailwind plugin that makes "hero-#{ICON}" classes available.
+   The heroicons installation itself is managed by your mix.exs */
+@plugin "../vendor/heroicons";
+
+/* daisyUI Tailwind Plugin. You can update this file by fetching the latest version with:
+   curl -sLO https://github.com/saadeghi/daisyui/releases/latest/download/daisyui.js
+   Make sure to look at the daisyUI changelog: https://daisyui.com/docs/changelog/ */
+@plugin "../vendor/daisyui" {
+  themes: false;
+}
+
+/* daisyUI theme plugin. You can update this file by fetching the latest version with:
+  curl -sLO https://github.com/saadeghi/daisyui/releases/latest/download/daisyui-theme.js
+  We ship with two themes, a light one inspired on Phoenix colors and a dark one inspired
+  on Elixir colors. Build your own at: https://daisyui.com/theme-generator/ */
+@plugin "../vendor/daisyui-theme" {
+  name: "dark";
+  default: false;
+  prefersdark: true;
+  color-scheme: "dark";
+  --color-base-100: oklch(30.33% 0.016 252.42);
+  --color-base-200: oklch(25.26% 0.014 253.1);
+  --color-base-300: oklch(20.15% 0.012 254.09);
+  --color-base-content: oklch(97.807% 0.029 256.847);
+  --color-primary: oklch(58% 0.233 277.117);
+  --color-primary-content: oklch(96% 0.018 272.314);
+  --color-secondary: oklch(58% 0.233 277.117);
+  --color-secondary-content: oklch(96% 0.018 272.314);
+  --color-accent: oklch(60% 0.25 292.717);
+  --color-accent-content: oklch(96% 0.016 293.756);
+  --color-neutral: oklch(37% 0.044 257.287);
+  --color-neutral-content: oklch(98% 0.003 247.858);
+  --color-info: oklch(58% 0.158 241.966);
+  --color-info-content: oklch(97% 0.013 236.62);
+  --color-success: oklch(60% 0.118 184.704);
+  --color-success-content: oklch(98% 0.014 180.72);
+  --color-warning: oklch(66% 0.179 58.318);
+  --color-warning-content: oklch(98% 0.022 95.277);
+  --color-error: oklch(58% 0.253 17.585);
+  --color-error-content: oklch(96% 0.015 12.422);
+  --radius-selector: 0.25rem;
+  --radius-field: 0.25rem;
+  --radius-box: 0.5rem;
+  --size-selector: 0.21875rem;
+  --size-field: 0.21875rem;
+  --border: 1.5px;
+  --depth: 1;
+  --noise: 0;
+}
+
+@plugin "../vendor/daisyui-theme" {
+  name: "light";
+  default: true;
+  prefersdark: false;
+  color-scheme: "light";
+  --color-base-100: oklch(98% 0 0);
+  --color-base-200: oklch(96% 0.001 286.375);
+  --color-base-300: oklch(92% 0.004 286.32);
+  --color-base-content: oklch(21% 0.006 285.885);
+  --color-primary: oklch(70% 0.213 47.604);
+  --color-primary-content: oklch(98% 0.016 73.684);
+  --color-secondary: oklch(55% 0.027 264.364);
+  --color-secondary-content: oklch(98% 0.002 247.839);
+  --color-accent: oklch(0% 0 0);
+  --color-accent-content: oklch(100% 0 0);
+  --color-neutral: oklch(44% 0.017 285.786);
+  --color-neutral-content: oklch(98% 0 0);
+  --color-info: oklch(62% 0.214 259.815);
+  --color-info-content: oklch(97% 0.014 254.604);
+  --color-success: oklch(70% 0.14 182.503);
+  --color-success-content: oklch(98% 0.014 180.72);
+  --color-warning: oklch(66% 0.179 58.318);
+  --color-warning-content: oklch(98% 0.022 95.277);
+  --color-error: oklch(58% 0.253 17.585);
+  --color-error-content: oklch(96% 0.015 12.422);
+  --radius-selector: 0.25rem;
+  --radius-field: 0.25rem;
+  --radius-box: 0.5rem;
+  --size-selector: 0.21875rem;
+  --size-field: 0.21875rem;
+  --border: 1.5px;
+  --depth: 1;
+  --noise: 0;
+}
+
+/* Add variants based on LiveView classes */
+@custom-variant phx-click-loading (.phx-click-loading&, .phx-click-loading &);
+@custom-variant phx-submit-loading (.phx-submit-loading&, .phx-submit-loading &);
+@custom-variant phx-change-loading (.phx-change-loading&, .phx-change-loading &);
+
+/* Use the data attribute for dark mode  */
+@custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
+
+/* Make LiveView wrapper divs transparent for layout */
+[data-phx-session], [data-phx-teleported-src] { display: contents }
+
+/* This file is for your main application CSS */
+
+:root {
+  color-scheme: light;
+  --ink: #161512;
+  --muted: #6d6a62;
+  --line: #d8d2c4;
+  --paper: #fbfaf6;
+  --panel: #ffffff;
+  --field: #f1efe8;
+  --accent: #0d7d6c;
+  --accent-ink: #06231f;
+  --warn: #b15b25;
+  --danger: #b83737;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background:
+    linear-gradient(90deg, rgba(22, 21, 18, 0.04) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(22, 21, 18, 0.035) 1px, transparent 1px),
+    var(--paper);
+  background-size: 28px 28px;
+  color: var(--ink);
+  font-family: ui-serif, Georgia, Cambria, "Times New Roman", serif;
+}
+
+button,
+input,
+select {
+  font: inherit;
+}
+
+.site-header {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 18px clamp(16px, 4vw, 42px);
+}
+
+.brand-mark {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--ink);
+  font-size: 18px;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.brand-dot {
+  width: 14px;
+  height: 14px;
+  background: var(--accent);
+  box-shadow: 6px 6px 0 #f1bd3b;
+}
+
+.header-rule {
+  height: 1px;
+  flex: 1;
+  background: var(--line);
+}
+
+.site-main {
+  padding: 0 clamp(14px, 4vw, 42px) 48px;
+}
+
+.site-frame {
+  max-width: 1180px;
+  margin: 0 auto;
+}
+
+.start-shell,
+.workspace-head,
+.export-head,
+.upload-panel,
+.server-uploads,
+.gallery-section {
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.84);
+}
+
+.start-shell {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 28px;
+  align-items: end;
+  min-height: 68vh;
+  padding: clamp(24px, 7vw, 74px);
+}
+
+.start-copy h1,
+.workspace-head h1,
+.export-head h1 {
+  max-width: 820px;
+  margin: 0;
+  font-size: clamp(40px, 9vw, 92px);
+  line-height: 0.92;
+  letter-spacing: 0;
+}
+
+.start-copy p:not(.eyebrow) {
+  max-width: 560px;
+  color: var(--muted);
+  font-size: 20px;
+  line-height: 1.5;
+}
+
+.eyebrow {
+  margin: 0 0 12px;
+  color: var(--accent);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.primary-action,
+.file-button,
+.quiet-link,
+.tile-actions button,
+.tile-actions a,
+.row-actions button,
+.debug-log button,
+.image-tile form button {
+  display: inline-flex;
+  min-height: 42px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid var(--ink);
+  border-radius: 6px;
+  background: var(--ink);
+  color: #fff;
+  padding: 10px 14px;
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform 140ms ease, background 140ms ease;
+}
+
+.primary-action:hover,
+.file-button:hover,
+.quiet-link:hover,
+.tile-actions button:hover,
+.tile-actions a:hover,
+.row-actions button:hover,
+.debug-log button:hover,
+.image-tile form button:hover {
+  transform: translateY(-1px);
+}
+
+.quiet-link {
+  background: var(--panel);
+  color: var(--ink);
+}
+
+.workspace-head,
+.export-head {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 14px;
+  padding: 20px;
+}
+
+.workspace-head h1,
+.export-head h1 {
+  max-width: min(82vw, 760px);
+  overflow-wrap: anywhere;
+  font-size: clamp(28px, 6vw, 58px);
+}
+
+.upload-panel,
+.server-uploads,
+.gallery-section {
+  margin-top: 14px;
+  padding: 18px;
+}
+
+.panel-head,
+.section-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.panel-head h2,
+.section-title h2 {
+  margin: 0;
+  font-size: 24px;
+}
+
+.section-title span {
+  display: inline-flex;
+  min-width: 34px;
+  min-height: 34px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--field);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+.file-button input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.queue-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 18px;
+  align-items: center;
+  margin-bottom: 14px;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.queue-controls label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.queue-controls select,
+.image-tile input {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--field);
+  padding: 8px 10px;
+}
+
+.client-queue,
+.server-upload-list {
+  display: grid;
+  gap: 10px;
+}
+
+.queue-row,
+.server-upload {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(130px, 24%);
+  gap: 12px;
+  align-items: center;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  padding: 12px;
+}
+
+.queue-row strong,
+.server-upload strong {
+  display: block;
+  overflow-wrap: anywhere;
+}
+
+.queue-row span,
+.server-upload span,
+.tile-meta {
+  color: var(--muted);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12px;
+}
+
+.queue-row code,
+.server-upload code {
+  display: block;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  color: var(--danger);
+  white-space: normal;
+}
+
+.queue-row progress {
+  width: 100%;
+  height: 14px;
+  accent-color: var(--accent);
+}
+
+.debug-log {
+  margin-top: 14px;
+  border-top: 1px solid var(--line);
+  padding-top: 12px;
+}
+
+.debug-log summary {
+  cursor: pointer;
+  font-weight: 800;
+}
+
+.debug-log pre {
+  max-height: 260px;
+  overflow: auto;
+  border: 1px solid var(--line);
+  background: #111;
+  color: #e9f5ec;
+  padding: 12px;
+  font-size: 12px;
+  white-space: pre-wrap;
+}
+
+.gallery-grid,
+.export-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 14px;
+}
+
+.image-tile,
+.export-item {
+  border: 1px solid var(--line);
+  background: var(--panel);
+  padding: 10px;
+}
+
+.image-preview,
+.export-preview {
+  display: block;
+  aspect-ratio: 1;
+  background: var(--field);
+  overflow: hidden;
+}
+
+.image-preview img,
+.export-preview img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.tile-meta,
+.export-meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.tile-actions,
+.row-actions {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.tile-actions button,
+.tile-actions a {
+  min-height: 38px;
+  padding: 8px;
+}
+
+.image-tile form {
+  display: grid;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.image-tile form label {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.empty-state {
+  margin: 0;
+  border: 1px dashed var(--line);
+  background: rgba(241, 239, 232, 0.65);
+  color: var(--muted);
+  padding: 14px;
+}
+
+.export-meta {
+  align-items: center;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12px;
+}
+
+.export-meta a {
+  color: var(--accent-ink);
+}
+
+@media (max-width: 720px) {
+  .start-shell,
+  .workspace-head,
+  .export-head,
+  .panel-head {
+    grid-template-columns: 1fr;
+    align-items: start;
+  }
+
+  .start-shell,
+  .workspace-head,
+  .export-head,
+  .panel-head,
+  .section-title {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .queue-row,
+  .server-upload {
+    grid-template-columns: 1fr;
+  }
+
+  .tile-actions {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}

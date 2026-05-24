@@ -1,0 +1,118 @@
+defmodule ImaedgeWeb.UploadController do
+  use ImaedgeWeb, :controller
+
+  alias Imaedge.Media
+  alias Imaedge.Uploads
+
+  def create(conn, %{"collection_id" => collection_id} = params) do
+    collection = Media.get_collection_by_public_id!(collection_id)
+
+    cond do
+      not Uploads.allowed_mime?(params["mime"]) ->
+        conn
+        |> put_status(:unprocessable_entity)
+        |> json(%{error: "unsupported_mime", message: "Unsupported image format"})
+
+      duplicate = Media.find_duplicate_image(collection, String.downcase(params["sha256"] || "")) ->
+        json(conn, %{duplicate: true, image_id: duplicate.public_id})
+
+      true ->
+        attrs = %{
+          "filename" => params["filename"],
+          "mime" => params["mime"],
+          "byte_size" => int_param(params["byte_size"]),
+          "sha256" => params["sha256"],
+          "contributor_id" => params["contributor_id"],
+          "timezone_offset_minutes" => int_param(params["timezone_offset_minutes"])
+        }
+
+        case Media.create_upload_session(collection, attrs) do
+          {:ok, session} ->
+            json(conn, upload_json(session))
+
+          {:error, changeset} ->
+            conn
+            |> put_status(:unprocessable_entity)
+            |> json(%{error: "invalid_upload", details: inspect(changeset.errors)})
+        end
+    end
+  end
+
+  def show(conn, %{"collection_id" => collection_id, "upload_id" => upload_id}) do
+    collection = Media.get_collection_by_public_id!(collection_id)
+    session = Media.get_upload_session!(collection, upload_id)
+
+    json(conn, upload_json(session))
+  end
+
+  def chunk(conn, %{"collection_id" => collection_id, "upload_id" => upload_id, "index" => index}) do
+    collection = Media.get_collection_by_public_id!(collection_id)
+    session = Media.get_upload_session!(collection, upload_id)
+
+    with {index, ""} <- Integer.parse(index),
+         {:ok, body, conn} <- read_chunk_body(conn, session.chunk_size),
+         {:ok, result} <- Uploads.write_chunk(session, index, body) do
+      json(conn, result)
+    else
+      {:more, _body, _conn} ->
+        conn
+        |> put_status(:request_entity_too_large)
+        |> json(%{error: "chunk_too_large"})
+
+      {:error, reason} ->
+        conn
+        |> put_status(:unprocessable_entity)
+        |> json(%{error: "chunk_failed", details: inspect(reason)})
+
+      _ ->
+        conn
+        |> put_status(:bad_request)
+        |> json(%{error: "invalid_chunk"})
+    end
+  end
+
+  def finalize(conn, %{"collection_id" => collection_id, "upload_id" => upload_id}) do
+    collection = Media.get_collection_by_public_id!(collection_id)
+    session = Media.get_upload_session!(collection, upload_id)
+
+    case Uploads.finalize(session) do
+      {:ok, %{session: session, image: image}} ->
+        json(conn, %{status: session.status, image_id: image.public_id})
+
+      {:error, {:missing_chunks, missing}} ->
+        conn
+        |> put_status(:conflict)
+        |> json(%{error: "missing_chunks", missing_chunks: missing})
+
+      {:error, reason} ->
+        conn
+        |> put_status(:unprocessable_entity)
+        |> json(%{error: "finalize_failed", details: inspect(reason)})
+    end
+  end
+
+  defp upload_json(session) do
+    %{
+      id: session.public_id,
+      status: session.status,
+      chunk_size: session.chunk_size,
+      total_chunks: session.total_chunks,
+      missing_chunks: Uploads.missing_chunks(session),
+      error_message: session.error_message
+    }
+  end
+
+  defp read_chunk_body(conn, chunk_size) do
+    read_body(conn, length: chunk_size + 1024, read_length: chunk_size + 1024)
+  end
+
+  defp int_param(nil), do: nil
+  defp int_param(value) when is_integer(value), do: value
+
+  defp int_param(value) when is_binary(value) do
+    case Integer.parse(value) do
+      {int, ""} -> int
+      _ -> nil
+    end
+  end
+end

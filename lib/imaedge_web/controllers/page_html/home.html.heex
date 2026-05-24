@@ -1,0 +1,18 @@
+<Layouts.app flash={@flash}>
+  <section class="start-shell">
+    <div class="start-copy">
+      <p class="eyebrow">imaedge</p>
+      <h1>Collect original photos through one secret link.</h1>
+      <p>
+        A small, private upload room for travel days, bad networks, and the quiet relief of knowing which files actually arrived.
+      </p>
+    </div>
+
+    <form action={~p"/collections"} method="post" class="start-action">
+      <input type="hidden" name="_csrf_token" value={get_csrf_token()} />
+      <button id="create-collection" type="submit" class="primary-action">
+        <.icon name="hero-plus" class="size-5" /> New collection
+      </button>
+    </form>
+  </section>
+</Layouts.app>
