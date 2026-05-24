@@ -2,7 +2,7 @@
 ARG ELIXIR_VERSION=1.19.5
 ARG OTP_VERSION=28
 ARG BUILDER_IMAGE="elixir:${ELIXIR_VERSION}-otp-${OTP_VERSION}-slim"
-ARG RUNNER_IMAGE="debian:bookworm-slim"
+ARG RUNNER_IMAGE="debian:trixie-slim"
 
 # ---- builder
 FROM ${BUILDER_IMAGE} AS builder
