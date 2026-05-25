@@ -6,7 +6,7 @@ primary_region = "fra"
 
 [env]
   PHX_SERVER = "true"
-  PHX_HOST = "imaedge.fly.dev"
+  PHX_HOST = "www.imaedge.org"
   PORT = "8080"
   POOL_SIZE = "5"
   AWS_REGION = "auto"
@@ -24,6 +24,10 @@ primary_region = "fra"
 [deploy]
   strategy = "immediate"
   release_command = "/app/bin/imaedge eval 'Imaedge.Release.migrate'"
+
+[[restart]]
+  policy = "always"
+  processes = ["app"]
 
 [[vm]]
   size = "shared-cpu-2x"
