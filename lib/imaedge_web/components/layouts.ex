@@ -70,9 +70,9 @@ defmodule ImaedgeWeb.Layouts do
     ~H"""
     <div class="font-brand-sans text-ink text-[15.5px] leading-[1.55] tracking-[-0.01em] bg-paper min-h-screen antialiased selection:bg-brand-accent selection:text-ink">
       <header class="sticky top-0 z-50 bg-paper/85 backdrop-blur-md backdrop-saturate-150 border-b border-black/[0.06]">
-        <div class="max-w-[1320px] mx-auto px-8 max-md:px-3 max-[460px]:px-2.5 flex items-center justify-between h-20 max-md:h-12 gap-6">
+        <div class="max-w-[1320px] mx-auto px-8 max-md:px-4 max-[460px]:px-3 flex items-center justify-between h-20 max-md:h-14 gap-6">
           <a
-            class="inline-flex items-center gap-3 max-md:gap-2 font-bold text-[26px] max-md:text-[19px] tracking-[-0.025em] text-ink"
+            class="inline-flex items-center gap-3 max-md:gap-2 font-bold text-[26px] max-md:text-[20px] tracking-[-0.025em] text-ink"
             href={~p"/"}
             aria-label="imaedge"
           >

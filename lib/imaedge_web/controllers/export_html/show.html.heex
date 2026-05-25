@@ -1,7 +1,7 @@
 <Layouts.workspace flash={@flash} live?={false} show_new_collection={false}>
   <section class="max-w-[1320px] mx-auto px-8 max-md:px-3 max-[460px]:px-2.5 py-[clamp(56px,7vw,96px)] pb-[clamp(40px,5vw,64px)] max-md:py-[32px] max-md:pb-[28px] max-[460px]:py-[28px]">
     <div class="flex flex-wrap items-baseline gap-x-5 max-md:gap-x-3 gap-y-0.5 font-brand-sans text-[13px] max-md:text-[11px] text-mid mb-4 max-md:mb-2 tracking-[-0.005em]">
-      <span title={format_absolute(@opened_at)}>opened {format_relative(@opened_at)}</span>
+      <span title={format_absolute(@opened_at)}>opened {format_relative(@opened_at)},</span>
       <span title={format_absolute(@last_activity_at)}>
         edited {format_relative(@last_activity_at)}
       </span>

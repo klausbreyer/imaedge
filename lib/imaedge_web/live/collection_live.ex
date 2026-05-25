@@ -75,7 +75,7 @@ defmodule ImaedgeWeb.CollectionLive do
     <Layouts.workspace flash={@flash} live?={true}>
       <section class="max-w-[1320px] mx-auto px-8 max-md:px-3 max-[460px]:px-2.5 py-[clamp(56px,7vw,96px)] pb-[clamp(56px,6vw,88px)] max-md:pt-3 max-md:pb-3 max-[460px]:pt-2.5 max-[460px]:pb-3">
         <div class="flex flex-wrap items-baseline gap-x-5 max-md:gap-x-3 gap-y-0.5 font-brand-sans text-[13px] max-md:text-[11px] text-mid mb-4 max-md:mb-1 tracking-[-0.005em] brand-reveal opacity-0 translate-y-2 motion-safe:animate-rise">
-          <span title={format_absolute(@opened_at)}>opened {format_relative(@opened_at)}</span>
+          <span title={format_absolute(@opened_at)}>opened {format_relative(@opened_at)},</span>
           <span title={format_absolute(@last_activity_at)}>
             edited {format_relative(@last_activity_at)}
           </span>
@@ -202,7 +202,7 @@ defmodule ImaedgeWeb.CollectionLive do
                     <option value="3">3</option>
                   </select>
                 </span>
-                <span>jpeg · png · webp</span>
+                <span>jpeg, png, webp</span>
               </div>
               <input
                 id="image-picker"
