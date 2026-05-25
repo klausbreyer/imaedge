@@ -10,9 +10,12 @@ defmodule Imaedge.Media do
   @topic_prefix "collection:"
   @rebalance_step_microseconds 1_000_000
 
-  def create_collection do
+  def create_collection(attrs \\ %{}) do
     %Collection{}
-    |> Collection.changeset(%{public_id: Id.base62(20)})
+    |> Collection.changeset(%{
+      public_id: Id.place_slug(),
+      name: Map.get(attrs, "name") || Map.get(attrs, :name)
+    })
     |> Repo.insert()
   end
 

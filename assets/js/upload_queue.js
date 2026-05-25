@@ -151,12 +151,12 @@ const SHA256_K = [
 ]
 
 function contributorId() {
-  const key = "imaedge:contributor-id"
+  const key = "imaedge:contributor-animal-id"
   const current = localStorage.getItem(key)
   if (current) return current
 
   const adjectives = ["quiet", "golden", "clear", "bright", "steady", "brave", "silver", "warm", "wild", "fresh"]
-  const nouns = ["harbor", "maple", "summit", "lantern", "river", "orbit", "signal", "meadow", "anchor", "atlas"]
+  const nouns = ["otter", "fox", "lynx", "panda", "badger", "falcon", "heron", "seal", "turtle", "wombat"]
   const random = array => array[Math.floor(Math.random() * array.length)]
   const value = `${random(adjectives)}-${random(nouns)}`
   localStorage.setItem(key, value)

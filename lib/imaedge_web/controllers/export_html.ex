@@ -1,5 +1,6 @@
 defmodule ImaedgeWeb.ExportHTML do
   use ImaedgeWeb, :html
+  alias Imaedge.Media.Collection
 
   embed_templates "export_html/*"
 
@@ -16,7 +17,7 @@ defmodule ImaedgeWeb.ExportHTML do
     Calendar.strftime(datetime, "%Y-%m-%d %H:%M UTC")
   end
 
-  def format_relative(nil), do: "—"
+  def format_relative(nil), do: "-"
 
   def format_relative(datetime) do
     seconds = DateTime.diff(DateTime.utc_now(), datetime, :second)
