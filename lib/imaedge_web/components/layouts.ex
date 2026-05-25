@@ -98,13 +98,10 @@ defmodule ImaedgeWeb.Layouts do
           </a>
 
           <div class="inline-flex items-center gap-[18px]">
-            <a
+            <.start_collection_cta
               :if={@show_new_collection}
-              class="inline-flex items-center justify-center h-9 max-md:h-7 px-3.5 max-md:px-2.5 bg-ink text-paper rounded-[3px] font-medium text-[13.5px] max-md:text-[12px] leading-none transition-colors hover:bg-[#1a1a1a]"
               href={~p"/"}
-            >
-              + new collection
-            </a>
+            />
           </div>
         </div>
       </header>

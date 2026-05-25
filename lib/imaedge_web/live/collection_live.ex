@@ -75,55 +75,53 @@ defmodule ImaedgeWeb.CollectionLive do
     ~H"""
     <Layouts.workspace flash={@flash} live?={true}>
       <section class="max-w-[1320px] mx-auto px-8 max-md:px-3 max-[460px]:px-2.5 py-[clamp(56px,7vw,96px)] pb-[clamp(56px,6vw,88px)] max-md:pt-3 max-md:pb-3 max-[460px]:pt-2.5 max-[460px]:pb-3">
-        <div class="flex flex-wrap items-baseline gap-x-5 max-md:gap-x-3 gap-y-0.5 font-brand-sans text-[13px] max-md:text-[11px] text-mid mb-4 max-md:mb-1 tracking-[-0.005em] brand-reveal opacity-0 translate-y-2 motion-safe:animate-rise">
-          <span title={format_absolute(@opened_at)}>opened {format_relative(@opened_at)},</span>
-          <span title={format_absolute(@last_activity_at)}>
-            edited {format_relative(@last_activity_at)}
-          </span>
+        <div class="flex flex-wrap items-end justify-between gap-x-4 gap-y-2 mb-6 max-md:mb-4 brand-reveal opacity-0 translate-y-2 motion-safe:animate-rise">
+          <p class="font-brand-sans text-[13px] max-md:text-[11px] text-mid tracking-[-0.005em]">
+            <span title={format_absolute(@opened_at)}>opened {format_relative(@opened_at)}</span>,
+            <span title={format_absolute(@last_activity_at)}>
+              edited {format_relative(@last_activity_at)}
+            </span>
+          </p>
+
+          <div class="ml-auto inline-flex flex-wrap items-center justify-end gap-2">
+            <button
+              type="button"
+              id="share-collection-link"
+              phx-hook="ShareCollectionLink"
+              data-collection-url={url(~p"/i/#{@collection.public_id}")}
+              data-collection-title={Collection.display_name(@collection)}
+              class="hidden items-center justify-center h-9 max-md:h-8 gap-2 px-3.5 max-md:px-2.5 bg-ink border border-ink rounded-[3px] font-medium text-[13.5px] max-md:text-[12px] leading-none tracking-[-0.005em] text-paper transition-colors hover:bg-white hover:text-ink box-border cursor-pointer"
+              aria-label="share collection link"
+            >
+              <svg
+                class="w-3.5 h-3.5 stroke-current stroke-[1.8] fill-none"
+                viewBox="0 0 24 24"
+              >
+                <path d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7M12 15V3m-5 5 5-5 5 5" />
+              </svg>
+              <span>share</span>
+            </button>
+
+            <a
+              class="inline-flex items-center justify-center h-9 max-md:h-8 gap-2 px-3.5 max-md:px-2.5 bg-white border border-ink rounded-[3px] font-medium text-[13.5px] max-md:text-[12px] leading-none tracking-[-0.005em] text-ink transition-colors hover:bg-ink hover:text-paper box-border"
+              href={~p"/i/#{@collection.public_id}/export"}
+            >
+              <svg
+                class="w-3.5 h-3.5 stroke-current stroke-[1.8] fill-none"
+                viewBox="0 0 24 24"
+              >
+                <path d="M5 12v6a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-6M12 3v12m-5-5 5 5 5-5" />
+              </svg>
+              <span>export</span>
+            </a>
+          </div>
         </div>
 
         <h1 class="font-brand-sans font-bold text-[clamp(32px,5.8vw,68px)] max-md:text-[24px] max-[460px]:text-[21px] leading-none tracking-[-0.035em] max-md:tracking-[-0.02em] text-ink break-words [overflow-wrap:anywhere] brand-reveal opacity-0 translate-y-2 motion-safe:animate-rise">
           {Collection.display_name(@collection)}
         </h1>
 
-        <p
-          :if={Collection.named?(@collection)}
-          class="mt-3 max-md:mt-1.5 font-brand-mono text-[14px] max-md:text-[11px] text-mid break-all [overflow-wrap:anywhere] brand-reveal opacity-0 translate-y-2 motion-safe:animate-rise"
-        >
-          imaedge.app/i/{@collection.public_id}
-        </p>
-
-        <div class="flex flex-wrap items-center gap-x-3 gap-y-6 mt-9 max-md:gap-x-2 max-md:gap-y-2 max-md:mt-3 brand-reveal opacity-0 translate-y-2 motion-safe:animate-rise">
-          <button
-            type="button"
-            id="copy-collection-link"
-            phx-hook="CopyCollectionLink"
-            data-collection-url={url(~p"/i/#{@collection.public_id}")}
-            class="inline-flex items-center justify-center h-[40px] max-md:h-[32px] gap-2 px-3.5 max-md:px-2.5 bg-white border border-ink rounded-[3px] font-medium text-[13.5px] max-md:text-[12px] leading-none text-ink transition-colors hover:bg-ink hover:text-paper box-border cursor-pointer"
-            aria-label="copy collection link"
-          >
-            <svg
-              class="w-3.5 h-3.5 stroke-current stroke-[1.8] fill-none"
-              viewBox="0 0 24 24"
-            >
-              <path d="M9 9h10v10H9zM5 5h10v10" />
-            </svg>
-            <span>copy link</span>
-          </button>
-
-          <a
-            class="inline-flex items-center justify-center h-[40px] max-md:h-[32px] gap-2 px-3.5 max-md:px-2.5 bg-white border border-ink rounded-[3px] font-medium text-[13.5px] max-md:text-[12px] leading-none text-ink transition-colors hover:bg-ink hover:text-paper box-border"
-            href={~p"/i/#{@collection.public_id}/export"}
-          >
-            <svg
-              class="w-3.5 h-3.5 stroke-current stroke-[1.8] fill-none"
-              viewBox="0 0 24 24"
-            >
-              <path d="M5 12v6a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-6M12 3v12m-5-5 5 5 5-5" />
-            </svg>
-            <span>export HTML</span>
-          </a>
-
+        <div class="flex flex-wrap items-center justify-end gap-x-3 gap-y-2 mt-7 max-md:gap-x-2 max-md:mt-3 brand-reveal opacity-0 translate-y-2 motion-safe:animate-rise">
           <div class="ml-auto max-[760px]:ml-auto inline-flex gap-5 max-md:gap-3 font-brand-sans text-[13.5px] max-md:text-[11.5px] text-mid tracking-[-0.005em]">
             <div class="inline-flex items-baseline gap-1">
               <span class="font-brand-sans font-bold text-[22px] max-md:text-[14px] text-ink tracking-[-0.03em] mr-1">
