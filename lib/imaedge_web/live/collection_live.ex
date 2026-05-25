@@ -2,6 +2,7 @@ defmodule ImaedgeWeb.CollectionLive do
   use ImaedgeWeb, :live_view
 
   alias Imaedge.Media
+  alias Imaedge.Media.Collection
 
   def mount(%{"id" => public_id}, _session, socket) do
     collection = Media.get_collection_by_public_id!(public_id)
@@ -12,7 +13,7 @@ defmodule ImaedgeWeb.CollectionLive do
 
     {:ok,
      socket
-     |> assign(:page_title, "imaedge")
+     |> assign(:page_title, Collection.display_name(collection))
      |> assign(:collection, collection)
      |> assign(:image_count, 0)
      |> assign(:upload_count, 0)
@@ -80,9 +81,16 @@ defmodule ImaedgeWeb.CollectionLive do
           </span>
         </div>
 
-        <h1 class="font-brand-sans font-bold text-[clamp(32px,5.8vw,68px)] max-md:text-[20px] max-[460px]:text-[18px] leading-none tracking-[-0.035em] max-md:tracking-[-0.02em] text-ink break-all [overflow-wrap:anywhere] brand-reveal opacity-0 translate-y-2 motion-safe:animate-rise max-md:font-mono max-md:font-medium">
-          {@collection.public_id}
+        <h1 class="font-brand-sans font-bold text-[clamp(32px,5.8vw,68px)] max-md:text-[24px] max-[460px]:text-[21px] leading-none tracking-[-0.035em] max-md:tracking-[-0.02em] text-ink break-words [overflow-wrap:anywhere] brand-reveal opacity-0 translate-y-2 motion-safe:animate-rise">
+          {Collection.display_name(@collection)}
         </h1>
+
+        <p
+          :if={Collection.named?(@collection)}
+          class="mt-3 max-md:mt-1.5 font-brand-mono text-[14px] max-md:text-[11px] text-mid break-all [overflow-wrap:anywhere] brand-reveal opacity-0 translate-y-2 motion-safe:animate-rise"
+        >
+          imaedge.app/i/{@collection.public_id}
+        </p>
 
         <div class="flex flex-wrap items-center gap-x-3 gap-y-6 mt-9 max-md:gap-x-2 max-md:gap-y-2 max-md:mt-3 brand-reveal opacity-0 translate-y-2 motion-safe:animate-rise">
           <button
@@ -501,7 +509,7 @@ defmodule ImaedgeWeb.CollectionLive do
     Calendar.strftime(datetime, "%Y-%m-%d %H:%M UTC")
   end
 
-  defp format_relative(nil), do: "—"
+  defp format_relative(nil), do: "-"
 
   defp format_relative(datetime) do
     seconds = DateTime.diff(DateTime.utc_now(), datetime, :second)

@@ -6,8 +6,8 @@ defmodule ImaedgeWeb.PageController do
     render(conn, :home)
   end
 
-  def create(conn, _params) do
-    {:ok, collection} = Media.create_collection()
+  def create(conn, params) do
+    {:ok, collection} = Media.create_collection(params)
     redirect(conn, to: ~p"/i/#{collection.public_id}")
   end
 end

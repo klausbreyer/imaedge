@@ -27,6 +27,32 @@ import topbar from "../vendor/topbar"
 import {GalleryActions} from "./gallery_actions"
 import {UploadQueue} from "./upload_queue"
 
+function installCollectionNamePrompts() {
+  document.querySelectorAll("form[data-collection-name-form]").forEach(form => {
+    if (form.dataset.collectionNamePromptBound === "true") return
+    form.dataset.collectionNamePromptBound = "true"
+
+    form.addEventListener("submit", event => {
+      const input = form.querySelector("input[name='name']")
+      if (!input || input.value.trim()) return
+
+      const value = window.prompt("Name this collection", "")
+      if (value === null) {
+        event.preventDefault()
+        return
+      }
+
+      const trimmed = value.trim()
+      if (!trimmed) {
+        event.preventDefault()
+        return
+      }
+
+      input.value = trimmed.slice(0, 80)
+    })
+  })
+}
+
 const CopyCollectionLink = {
   mounted() {
     this.el.addEventListener("click", async () => {
@@ -52,6 +78,9 @@ const CopyCollectionLink = {
     })
   },
 }
+
+installCollectionNamePrompts()
+window.addEventListener("phx:page-loading-stop", installCollectionNamePrompts)
 
 const csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
 const liveSocket = new LiveSocket("/live", Socket, {

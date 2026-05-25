@@ -46,6 +46,7 @@ config :imaedge, Imaedge.Repo, database_ssl_options
 config :imaedge, ImaedgeWeb.Endpoint,
   # Bind to all interfaces so phones on the local network can test the app.
   http: [ip: {0, 0, 0, 0}],
+  url: [host: System.get_env("PHX_HOST") || "localhost", port: 4000],
   check_origin: false,
   code_reloader: true,
   debug_errors: true,
