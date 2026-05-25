@@ -39,6 +39,12 @@ imaedge-*.tar
 # Local object storage emulator output.
 /priv/static/objects/
 
+# Brand assets built from priv/brand/ sources via `make brand`.
+/priv/static/favicon.svg
+/priv/static/favicon.ico
+/priv/static/apple-touch-icon.png
+/priv/static/images/brand/
+
 # In case you use Node.js/npm, you want to ignore these.
 npm-debug.log
 /assets/node_modules/

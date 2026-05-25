@@ -1,6 +1,6 @@
 ENV_FILE := /Users/kb0/versioned/imaedge/.env
 
-.PHONY: prepare test kill-port-4000 start
+.PHONY: prepare test kill-port-4000 start brand brand-clean
 
 prepare:
 	mix deps.get
@@ -23,9 +23,16 @@ kill-port-4000:
 		fi; \
 	fi
 
+brand:
+	@$(MAKE) -C priv/brand build
+
+brand-clean:
+	@$(MAKE) -C priv/brand clean
+
 start:
 	@$(MAKE) kill-port-4000
 	@$(MAKE) prepare
+	@$(MAKE) brand
 	@test -f "$(ENV_FILE)" || { echo "Env file not found: $(ENV_FILE)" >&2; exit 1; }
 	@device="$$(networksetup -listallhardwareports 2>/dev/null | awk '/^Hardware Port: Ethernet$$/ { getline; sub(/^Device: /, ""); print; exit }')"; \
 	if [ -z "$$device" ]; then echo "Ethernet hardware port not found" >&2; exit 1; fi; \
