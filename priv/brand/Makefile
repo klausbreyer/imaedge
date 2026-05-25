@@ -29,6 +29,7 @@
 STATIC        := ../static
 BRAND_OUT     := $(STATIC)/images/brand
 SVG_MARK      := favicon.svg
+SVG_APPLE     := apple-touch-icon.svg
 SVG_LOCKUP    := lockup.svg
 ICON_SIZES    := 16 32 48 64 128 180 192 256 512
 ICON_PNGS     := $(addprefix $(BRAND_OUT)/icon-,$(addsuffix .png,$(ICON_SIZES)))
@@ -188,9 +189,30 @@ endif
 
 # ---------- derived outputs ----------
 
-$(STATIC)/apple-touch-icon.png: $(BRAND_OUT)/icon-180.png
-	@cp $< $@
-	@echo "  alias  $@"
+# Apple Touch Icon uses square corners (iOS applies its own rounded mask) but
+# keeps the cyan cut corner from the brand mark, with transparency outside.
+$(STATIC)/apple-touch-icon.png: $(SVG_APPLE)
+	@mkdir -p $(STATIC)
+	@echo "  render $@ (180x180)"
+ifeq ($(RENDERER),rsvg)
+	@$(RSVG) -w 180 -h 180 $(SVG_APPLE) -o $@
+else ifeq ($(RENDERER),qlmanage)
+	@$(QLMANAGE) -t -s 180 -o $(STATIC) $(SVG_APPLE) >/dev/null 2>&1
+	@test -n "$(MAGICK)" || { echo "ERROR: ImageMagick is required to floodfill transparency"; exit 1; }
+	@$(MAGICK) $(STATIC)/$(SVG_APPLE).png -alpha set -bordercolor white -border 1 -fill none -floodfill +0+0 white -shave 1x1 $@
+	@rm -f $(STATIC)/$(SVG_APPLE).png
+else ifeq ($(RENDERER),chrome)
+	@printf '<!doctype html><meta charset="utf-8"><style>html,body{margin:0;padding:0;background:transparent}img{display:block;width:100vw;height:100vh}</style><img src="$(CWD)/$(SVG_APPLE)" alt="">' > $(STATIC)/apple-render.html
+	@"$(CHROME)" \
+	  --headless=new --disable-gpu --hide-scrollbars --no-sandbox \
+	  --default-background-color=00000000 \
+	  --force-device-scale-factor=1 \
+	  --window-size=180,180 \
+	  --screenshot="$(CWD)/$@" \
+	  "file://$(CWD)/$(STATIC)/apple-render.html" \
+	  >/dev/null 2>&1
+	@rm -f $(STATIC)/apple-render.html
+endif
 
 $(STATIC)/favicon.ico: $(BRAND_OUT)/icon-16.png $(BRAND_OUT)/icon-32.png $(BRAND_OUT)/icon-48.png
 	@if [ -n "$(MAGICK)" ]; then \

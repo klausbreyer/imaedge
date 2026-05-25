@@ -18,6 +18,8 @@ defmodule ImaedgeWeb.Router do
     pipe_through :browser
 
     get "/", PageController, :home
+    get "/about", PageController, :about
+    get "/privacy", PageController, :privacy
     post "/collections", PageController, :create
     live "/i/:id", CollectionLive, :show
     get "/i/:id/export", ExportController, :show
