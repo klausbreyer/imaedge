@@ -38,4 +38,20 @@ defmodule ImaedgeWeb.PageControllerTest do
     assert html =~ "export"
     assert html =~ "share"
   end
+
+  test "export page uses compact header actions", %{conn: conn} do
+    {:ok, collection} = Media.create_collection(%{name: "Beach Phone Dump"})
+
+    conn = get(conn, ~p"/i/#{collection.public_id}/export")
+    response = html_response(conn, 200)
+
+    assert response =~ "opened"
+    assert response =~ "edited"
+    assert response =~ ~s(href="/i/#{collection.public_id}")
+    assert response =~ "workspace"
+    assert response =~ "print"
+    refute response =~ "back to workspace"
+    refute response =~ "print / save PDF"
+    refute response =~ "imaedge.app/i/#{collection.public_id}"
+  end
 end
