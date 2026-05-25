@@ -4,8 +4,8 @@ defmodule ImaedgeWeb.PageControllerTest do
   test "GET /", %{conn: conn} do
     conn = get(conn, ~p"/")
     response = html_response(conn, 200)
-    assert response =~ "Collect original photos"
-    assert response =~ "New collection"
+    assert response =~ "Images."
+    assert response =~ "Start a collection"
     assert response =~ "noindex"
   end
 
