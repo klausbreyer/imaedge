@@ -25,10 +25,6 @@ primary_region = "fra"
   strategy = "immediate"
   release_command = "/app/bin/imaedge eval 'Imaedge.Release.migrate'"
 
-[[restart]]
-  policy = "always"
-  processes = ["app"]
-
 [[vm]]
-  size = "shared-cpu-2x"
-  memory_mb = 1024
+  size = "shared-cpu-1x"
+  memory_mb = 512
