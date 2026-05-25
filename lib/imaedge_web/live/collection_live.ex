@@ -75,7 +75,9 @@ defmodule ImaedgeWeb.CollectionLive do
       <section class="max-w-[1320px] mx-auto px-8 max-md:px-3 max-[460px]:px-2.5 py-[clamp(56px,7vw,96px)] pb-[clamp(56px,6vw,88px)] max-md:pt-3 max-md:pb-3 max-[460px]:pt-2.5 max-[460px]:pb-3">
         <div class="flex flex-wrap items-baseline gap-x-5 max-md:gap-x-3 gap-y-0.5 font-brand-sans text-[13px] max-md:text-[11px] text-mid mb-4 max-md:mb-1 tracking-[-0.005em] brand-reveal opacity-0 translate-y-2 motion-safe:animate-rise">
           <span title={format_absolute(@opened_at)}>opened {format_relative(@opened_at)}</span>
-          <span title={format_absolute(@last_activity_at)}>edited {format_relative(@last_activity_at)}</span>
+          <span title={format_absolute(@last_activity_at)}>
+            edited {format_relative(@last_activity_at)}
+          </span>
         </div>
 
         <h1 class="font-brand-sans font-bold text-[clamp(32px,5.8vw,68px)] max-md:text-[20px] max-[460px]:text-[18px] leading-none tracking-[-0.035em] max-md:tracking-[-0.02em] text-ink break-all [overflow-wrap:anywhere] brand-reveal opacity-0 translate-y-2 motion-safe:animate-rise max-md:font-mono max-md:font-medium">
@@ -132,7 +134,6 @@ defmodule ImaedgeWeb.CollectionLive do
 
       <section class="max-w-[1320px] mx-auto px-8 max-md:px-3 max-[460px]:px-2.5">
         <div class="grid grid-cols-[1fr_1.6fr] gap-14 pb-[clamp(40px,5vw,64px)] max-[980px]:grid-cols-1 max-[980px]:gap-4 max-md:pb-4">
-
           <div
             id="upload-queue"
             phx-hook="UploadQueue"
@@ -144,7 +145,10 @@ defmodule ImaedgeWeb.CollectionLive do
               <h3 class="font-bold text-[22px] max-md:text-[15px] tracking-[-0.025em] leading-tight">
                 Uploads
               </h3>
-              <div id="queue-waiting" class="font-brand-sans text-[13px] max-md:text-[11.5px] text-mid tracking-[-0.005em]">
+              <div
+                id="queue-waiting"
+                class="font-brand-sans text-[13px] max-md:text-[11.5px] text-mid tracking-[-0.005em]"
+              >
                 0 waiting
               </div>
             </div>
@@ -154,8 +158,14 @@ defmodule ImaedgeWeb.CollectionLive do
               class="block relative border-[1.5px] border-dashed border-black/[0.20] rounded-[4px] bg-white cursor-pointer transition-[border-color,background,transform] hover:border-ink hover:bg-brand-accent/[0.04] active:bg-brand-accent/[0.08] active:scale-[0.995]"
             >
               <div class="p-5 max-md:p-3 flex max-md:flex-row max-md:items-center flex-col gap-3.5 max-md:gap-3 items-start">
-                <div class="w-10 h-10 max-md:w-9 max-md:h-9 rounded-[3px] bg-ink text-paper grid place-items-center shrink-0" aria-hidden="true">
-                  <svg class="w-[18px] h-[18px] max-md:w-[15px] max-md:h-[15px] stroke-current stroke-[1.7] fill-none" viewBox="0 0 24 24">
+                <div
+                  class="w-10 h-10 max-md:w-9 max-md:h-9 rounded-[3px] bg-ink text-paper grid place-items-center shrink-0"
+                  aria-hidden="true"
+                >
+                  <svg
+                    class="w-[18px] h-[18px] max-md:w-[15px] max-md:h-[15px] stroke-current stroke-[1.7] fill-none"
+                    viewBox="0 0 24 24"
+                  >
                     <path
                       d="M12 16V4m0 0-4 4m4-4 4 4M5 20h14"
                       stroke-linecap="round"
@@ -254,11 +264,9 @@ defmodule ImaedgeWeb.CollectionLive do
                 </div>
               </article>
             </div>
-
           </div>
 
           <div class="flex flex-col gap-8 max-[980px]:gap-7 min-w-0">
-
             <div class="brand-reveal opacity-0 translate-y-2 motion-safe:animate-rise">
               <div class="flex items-baseline justify-between gap-4 mb-4 max-md:mb-1.5">
                 <h3 class="font-bold text-[22px] max-md:text-[15px] tracking-[-0.025em]">
@@ -266,7 +274,10 @@ defmodule ImaedgeWeb.CollectionLive do
                 </h3>
               </div>
 
-              <div :if={@undo_image} class="flex items-center justify-between gap-3 mb-3 py-2.5 px-3 bg-tint rounded-[3px] font-brand-sans text-[13px] text-mid">
+              <div
+                :if={@undo_image}
+                class="flex items-center justify-between gap-3 mb-3 py-2.5 px-3 bg-tint rounded-[3px] font-brand-sans text-[13px] text-mid"
+              >
                 <span>Image hidden for 10 seconds.</span>
                 <button
                   type="button"
@@ -290,7 +301,10 @@ defmodule ImaedgeWeb.CollectionLive do
                   class="brand-tile relative flex flex-col gap-0"
                 >
                   <div class="brand-tile-img relative aspect-square overflow-hidden rounded-[2px] max-[760px]:rounded-none bg-tint">
-                    <a href={image.preview_large_url || image.original_url} class="block w-full h-full">
+                    <a
+                      href={image.preview_large_url || image.original_url}
+                      class="block w-full h-full"
+                    >
                       <img
                         class="w-full h-full object-cover transition-transform duration-[600ms] ease-out"
                         src={image.preview_small_url || image.original_url}
@@ -364,7 +378,12 @@ defmodule ImaedgeWeb.CollectionLive do
                         <input
                           type="datetime-local"
                           step="60"
-                          value={format_album_input(image.effective_taken_at, image.timezone_offset_minutes)}
+                          value={
+                            format_album_input(
+                              image.effective_taken_at,
+                              image.timezone_offset_minutes
+                            )
+                          }
                           data-image-id={image.public_id}
                           class="absolute inset-0 w-full h-full opacity-0 cursor-pointer p-0 m-0 border-0 bg-transparent"
                         />
@@ -400,7 +419,6 @@ defmodule ImaedgeWeb.CollectionLive do
                 </figure>
               </div>
             </div>
-
           </div>
         </div>
       </section>
@@ -436,7 +454,10 @@ defmodule ImaedgeWeb.CollectionLive do
               clear
             </button>
           </div>
-          <pre id="debug-log-output" class="mt-2.5 py-3 px-3.5 bg-tint text-ink-2 rounded-[3px] font-brand-mono text-[11.5px] leading-[1.6] max-h-[180px] overflow-auto whitespace-pre-wrap"></pre>
+          <pre
+            id="debug-log-output"
+            class="mt-2.5 py-3 px-3.5 bg-tint text-ink-2 rounded-[3px] font-brand-mono text-[11.5px] leading-[1.6] max-h-[180px] overflow-auto whitespace-pre-wrap"
+          ></pre>
         </details>
       </section>
     </Layouts.workspace>
