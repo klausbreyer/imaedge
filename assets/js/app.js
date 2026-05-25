@@ -27,11 +27,37 @@ import topbar from "../vendor/topbar"
 import {GalleryActions} from "./gallery_actions"
 import {UploadQueue} from "./upload_queue"
 
+const CopyCollectionLink = {
+  mounted() {
+    this.el.addEventListener("click", async () => {
+      const url = this.el.dataset.collectionUrl || window.location.href
+      const label = this.el.querySelector("span")
+      const original = label ? label.textContent : null
+      try {
+        await navigator.clipboard.writeText(url)
+      } catch (_err) {
+        const helper = document.createElement("textarea")
+        helper.value = url
+        helper.style.position = "fixed"
+        helper.style.opacity = "0"
+        document.body.appendChild(helper)
+        helper.select()
+        try { document.execCommand("copy") } catch (_e) {}
+        document.body.removeChild(helper)
+      }
+      if (label) {
+        label.textContent = "copied"
+        setTimeout(() => { if (original !== null) label.textContent = original }, 1400)
+      }
+    })
+  },
+}
+
 const csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
 const liveSocket = new LiveSocket("/live", Socket, {
   longPollFallbackMs: 2500,
   params: {_csrf_token: csrfToken},
-  hooks: {...colocatedHooks, GalleryActions, UploadQueue},
+  hooks: {...colocatedHooks, GalleryActions, UploadQueue, CopyCollectionLink},
 })
 
 // Show progress bar on live navigation and form submits

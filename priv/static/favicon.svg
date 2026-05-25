@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="imaedge">
+  <path d="M 14 4 H 50 a 10 10 0 0 1 10 10 V 36 L 36 60 H 14 a 10 10 0 0 1 -10 -10 V 14 a 10 10 0 0 1 10 -10 Z" fill="#0b1020"/>
+  <path d="M 60 36 L 36 60 L 36 56.8 L 56.8 36 Z" fill="#22d3ee"/>
+  <text x="31" y="40" text-anchor="middle"
+        font-family="ui-sans-serif, system-ui, -apple-system, 'SF Pro Display', 'Helvetica Neue', Inter, Arial, sans-serif"
+        font-size="30" font-weight="800" fill="#f6f5f1"
+        style="font-feature-settings:'kern' 1;">æ</text>
+</svg>

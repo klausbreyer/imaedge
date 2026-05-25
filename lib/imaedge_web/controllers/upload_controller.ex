@@ -76,6 +76,9 @@ defmodule ImaedgeWeb.UploadController do
     session = Media.get_upload_session!(collection, upload_id)
 
     case Uploads.finalize(session) do
+      {:ok, %{session: session, image: image, duplicate: true}} ->
+        json(conn, %{duplicate: true, status: session.status, image_id: image.public_id})
+
       {:ok, %{session: session, image: image}} ->
         json(conn, %{status: session.status, image_id: image.public_id})
 

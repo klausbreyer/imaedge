@@ -96,6 +96,45 @@
 @custom-variant phx-submit-loading (.phx-submit-loading&, .phx-submit-loading &);
 @custom-variant phx-change-loading (.phx-change-loading&, .phx-change-loading &);
 
+/* imaedge brand tokens, fonts and animations (workspace/export pages) */
+@theme {
+  --color-paper: #fafaf7;
+  --color-tint: #f0eee9;
+  --color-tint-2: #e7e4dc;
+  --color-ink: #0a0a0a;
+  --color-ink-2: #2c2c2c;
+  --color-mid: #6e6e6e;
+  --color-brand-accent: #22d3ee;
+  --color-brand-accent-d: #0891a8;
+  --color-warn: #e26a48;
+
+  --font-brand-sans:
+    "Satoshi", ui-sans-serif, system-ui, -apple-system, "SF Pro Display", sans-serif;
+  --font-brand-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+  --animate-pulse-cyan: pulse-cyan 2.6s ease-out infinite;
+  --animate-rise: rise 700ms cubic-bezier(0.2, 0.7, 0.2, 1) forwards;
+}
+
+@keyframes pulse-cyan {
+  0% {
+    box-shadow: 0 0 0 0 rgba(34, 211, 238, 0.5);
+  }
+  70% {
+    box-shadow: 0 0 0 8px rgba(34, 211, 238, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(34, 211, 238, 0);
+  }
+}
+
+@keyframes rise {
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
 /* Use the data attribute for dark mode  */
 @custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
 
@@ -720,5 +759,59 @@ select {
 @media (min-width: 721px) {
   .time-editor-overlay {
     align-items: center;
+  }
+}
+
+/* ───── brand wordmark + workspace helpers (app.html design) ───── */
+
+.brand-wm em {
+  color: #0891a8;
+  font-style: normal;
+  font-weight: 900;
+}
+
+/* details summary marker + chevron toggle */
+details.brand-debug > summary {
+  list-style: none;
+}
+details.brand-debug > summary::-webkit-details-marker {
+  display: none;
+}
+details.brand-debug > summary::before {
+  content: "›";
+  margin-right: 8px;
+  color: #6e6e6e;
+  transition: transform 180ms;
+}
+details.brand-debug[open] > summary::before {
+  transform: rotate(90deg);
+}
+
+/* hover-reveal tools on gallery tiles (desktop only) */
+.brand-tile .brand-tools {
+  opacity: 0;
+  transition: opacity 160ms;
+}
+.brand-tile:hover .brand-tools,
+.brand-tile:focus-within .brand-tools {
+  opacity: 1;
+}
+@media (hover: none) {
+  .brand-tile .brand-tools {
+    opacity: 1;
+  }
+}
+
+/* tile image hover scale */
+.brand-tile:hover .brand-tile-img img {
+  transform: scale(1.03);
+}
+
+/* prefers-reduced-motion respects */
+@media (prefers-reduced-motion: reduce) {
+  .brand-reveal {
+    opacity: 1 !important;
+    transform: none !important;
+    animation: none !important;
   }
 }

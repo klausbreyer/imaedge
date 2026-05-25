@@ -207,9 +207,9 @@ export const UploadQueue = {
     this.queueEl = this.el.querySelector("#client-queue")
     this.storageEl = this.el.querySelector("#storage-estimate")
     this.concurrencyEl = this.el.querySelector("#upload-concurrency")
-    this.logEl = this.el.querySelector("#debug-log-output")
-    this.copyLogButton = this.el.querySelector("#copy-debug-log")
-    this.clearLogButton = this.el.querySelector("#clear-debug-log")
+    this.logEl = document.querySelector("#debug-log-output")
+    this.copyLogButton = document.querySelector("#copy-debug-log")
+    this.clearLogButton = document.querySelector("#clear-debug-log")
     this.records = []
     this.active = 0
     this.poll = null
@@ -226,7 +226,7 @@ export const UploadQueue = {
 
     this.records = (await allRecords(this.collectionId)).map(record => ({
       ...record,
-      status: ["uploading", "checking duplicate", "finalizing", "local storage"].includes(record.status) ? "queued" : record.status
+      status: ["uploading", "preparing", "finalizing", "local storage"].includes(record.status) ? "queued" : record.status
     }))
     this.render()
     this.updateStorageEstimate()
@@ -312,7 +312,7 @@ export const UploadQueue = {
 
   async upload(record) {
     try {
-      record.status = "checking duplicate"
+      record.status = "preparing"
       this.render()
 
       if (!record.sessionId) {
@@ -354,6 +354,7 @@ export const UploadQueue = {
       }
 
       record.status = "uploading"
+      this.render()
       await this.uploadMissingChunks(record, status.missing_chunks)
 
       record.status = "finalizing"
@@ -481,23 +482,36 @@ export const UploadQueue = {
 
     const estimate = await navigator.storage.estimate()
     const available = estimate.quota && estimate.usage ? estimate.quota - estimate.usage : null
-    this.storageEl.textContent = `Local storage: ${formatBytes(estimate.usage)} used, ${formatBytes(available)} free estimate`
+    this.storageEl.innerHTML = `<b class="text-ink font-semibold">${formatBytes(estimate.usage)}</b> / ~${formatBytes(available)} free`
+    const bar = document.querySelector("#storage-bar")
+    if (bar && estimate.quota) {
+      const pct = Math.min(100, (estimate.usage / estimate.quota) * 100)
+      bar.style.width = `${pct.toFixed(2)}%`
+    }
   },
 
   render() {
+    const waitingEl = document.querySelector("#queue-waiting")
+    if (waitingEl) {
+      const waiting = this.records.filter(r => !["already present", "complete"].includes(r.status)).length
+      waitingEl.textContent = `${waiting} waiting`
+    }
+
     if (!this.records.length) {
-      this.queueEl.innerHTML = `<p class="empty-state">No local uploads waiting.</p>`
+      this.queueEl.innerHTML = `<div class="text-[14px] text-mid py-3 px-3.5 bg-tint rounded-[3px]">Nothing waiting locally.</div>`
       return
     }
 
     this.queueEl.innerHTML = this.records.map(record => `
-      <article class="queue-row">
-        <div>
-          <strong>${escapeHtml(record.name)}</strong>
-          <span>${escapeHtml(record.status)} ${record.speed ? `- ${escapeHtml(record.speed)}` : ""}</span>
-          ${record.error ? `<code>${escapeHtml(record.error)}</code>` : ""}
+      <article class="bg-white border border-black/[0.06] rounded-[3px] py-2.5 px-3 flex flex-col gap-2 font-brand-sans text-[13.5px]">
+        <div class="flex items-baseline justify-between gap-3">
+          <strong class="font-medium text-ink truncate min-w-0">${escapeHtml(record.name)}</strong>
+          <span class="font-brand-mono text-[11.5px] text-mid whitespace-nowrap">${escapeHtml(record.status)}${record.speed ? ` · ${escapeHtml(record.speed)}` : ""}</span>
         </div>
-        <progress max="100" value="${record.progress || 0}"></progress>
+        <div class="h-1 bg-tint overflow-hidden">
+          <div class="block h-full bg-ink transition-[width] duration-200" style="width:${record.progress || 0}%"></div>
+        </div>
+        ${record.error ? `<code class="font-brand-mono text-[11.5px] text-warn break-all">${escapeHtml(record.error)}</code>` : ""}
       </article>
     `).join("")
   },

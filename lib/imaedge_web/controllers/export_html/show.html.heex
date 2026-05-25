@@ -1,28 +1,118 @@
-<Layouts.app flash={@flash}>
-  <section class="export-head">
-    <div>
-      <p class="eyebrow">export</p>
-      <h1>Collection {@collection.public_id}</h1>
+<Layouts.workspace flash={@flash} live?={false} show_new_collection={false}>
+  <section class="max-w-[1320px] mx-auto px-8 max-md:px-3 max-[460px]:px-2.5 py-[clamp(56px,7vw,96px)] pb-[clamp(40px,5vw,64px)] max-md:py-[32px] max-md:pb-[28px] max-[460px]:py-[28px]">
+    <h1 class="font-brand-sans font-bold text-[clamp(32px,5.8vw,68px)] max-md:text-[36px] max-[460px]:text-[30px] leading-none tracking-[-0.035em] max-md:tracking-[-0.03em] text-ink break-all [overflow-wrap:anywhere] brand-reveal opacity-0 translate-y-2 motion-safe:animate-rise">
+      {@collection.public_id}
+    </h1>
+
+    <div class="flex flex-wrap items-center gap-x-3 gap-y-6 mt-9 max-md:gap-x-2 max-md:gap-y-[18px] max-md:mt-6 brand-reveal opacity-0 translate-y-2 motion-safe:animate-rise">
+      <a
+        class="inline-flex items-center gap-2.5 px-3.5 py-2.5 bg-white border border-ink rounded-[3px] font-medium text-[13.5px] max-md:text-[13px] text-ink transition-colors hover:bg-ink hover:text-paper"
+        href={~p"/i/#{@collection.public_id}"}
+      >
+        <svg
+          class="w-3.5 h-3.5 stroke-current stroke-[1.8] fill-none"
+          viewBox="0 0 24 24"
+        >
+          <path
+            d="M15 18l-6-6 6-6"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+        <span>back to workspace</span>
+      </a>
+
+      <a
+        class="inline-flex items-center gap-2.5 px-3.5 py-2.5 bg-ink text-paper border border-ink rounded-[3px] font-medium text-[13.5px] max-md:text-[13px] transition-colors hover:bg-[#1a1a1a]"
+        href="javascript:window.print()"
+      >
+        <svg
+          class="w-3.5 h-3.5 stroke-current stroke-[1.8] fill-none"
+          viewBox="0 0 24 24"
+        >
+          <path
+            d="M6 9V3h12v6M6 18H4a1 1 0 0 1-1-1v-6a1 1 0 0 1 1-1h16a1 1 0 0 1 1 1v6a1 1 0 0 1-1 1h-2M6 14h12v7H6z"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+        <span>print / save PDF</span>
+      </a>
+
+      <div class="ml-auto max-[760px]:ml-0 max-[760px]:w-full max-[760px]:flex-wrap max-[760px]:gap-[18px] max-[760px]:pt-2.5 inline-flex gap-7 font-brand-sans text-[13.5px] text-mid tracking-[-0.005em]">
+        <div class="inline-flex items-baseline gap-1.5">
+          <span class="font-brand-sans font-bold text-[22px] max-md:text-[18px] text-ink tracking-[-0.03em] mr-2 max-md:mr-1">
+            {length(@images)}
+          </span>
+          <span>images</span>
+        </div>
+      </div>
     </div>
-    <a class="quiet-link" href={~p"/i/#{@collection.public_id}"}>Back to workspace</a>
   </section>
 
-  <section class="export-list">
-    <%= for {image, index} <- Enum.with_index(@images, 1) do %>
-      <article class="export-item">
-        <a href={image.preview_large_url || image.original_url} class="export-preview">
+  <section class="max-w-[1320px] mx-auto px-8 max-md:px-3 max-[460px]:px-2.5 pb-[clamp(40px,5vw,64px)]">
+    <div class="flex items-center gap-4 py-3.5 border-t border-b border-black/[0.06] font-brand-sans text-[14px] text-mid mb-8 brand-reveal opacity-0 translate-y-2 motion-safe:animate-rise">
+      <span class="font-brand-sans font-bold text-[13px] text-ink py-[3px] px-2.5 bg-tint rounded-[3px] tracking-[-0.01em]">
+        {length(@images)}
+      </span>
+      <span>
+        <strong class="font-bold text-ink tracking-[-0.015em]">Originals.</strong>
+        Each row links to the full-resolution source. Previews are decorative; click the original for the unmodified file.
+      </span>
+      <span class="ml-auto font-brand-sans text-[13px] text-mid tracking-[-0.005em] max-[620px]:hidden">
+        static html · self-contained
+      </span>
+    </div>
+
+    <ol class="flex flex-col divide-y divide-black/[0.06] border-t border-b border-black/[0.06] brand-reveal opacity-0 translate-y-2 motion-safe:animate-rise">
+      <li :for={{image, index} <- Enum.with_index(@images, 1)} class="grid grid-cols-[88px_minmax(0,1fr)_auto] max-[620px]:grid-cols-[64px_minmax(0,1fr)] gap-4 max-md:gap-3 items-center py-4 max-md:py-3">
+        <a
+          href={image.preview_large_url || image.original_url}
+          class="block w-[88px] h-[88px] max-[620px]:w-16 max-[620px]:h-16 overflow-hidden rounded-[2px] bg-tint border border-black/[0.06]"
+        >
           <img
             src={image.preview_small_url || image.original_url}
             loading="lazy"
             alt={"Image #{index}"}
+            class="w-full h-full object-cover"
           />
         </a>
-        <div class="export-meta">
-          <strong>{String.pad_leading(to_string(index), 4, "0")}</strong>
-          <span>{Calendar.strftime(image.effective_taken_at, "%Y%m%d-%H%M%S")}</span>
-          <a href={image.original_url} download={download_name(image, index)}>original</a>
+
+        <div class="min-w-0">
+          <div class="flex items-baseline gap-2.5 font-brand-mono text-[12px] text-mid tracking-[0.01em]">
+            <span class="text-ink font-medium">{String.pad_leading(to_string(index), 4, "0")}</span>
+            <span>{Calendar.strftime(image.effective_taken_at, "%Y-%m-%d · %H:%M:%S")}</span>
+          </div>
+          <div class="mt-1 font-brand-sans text-[14px] text-ink truncate">
+            {image.original_filename}
+          </div>
+          <div class="mt-0.5 font-brand-mono text-[11.5px] text-mid">
+            {image.contributor_id}
+          </div>
         </div>
-      </article>
-    <% end %>
+
+        <a
+          href={image.original_url}
+          download={download_name(image, index)}
+          class="max-[620px]:col-span-2 max-[620px]:justify-self-start inline-flex items-center gap-2 px-3 py-2 bg-ink text-paper border border-ink rounded-[3px] font-medium text-[12.5px] hover:bg-[#1a1a1a]"
+        >
+          <svg
+            class="w-3.5 h-3.5 stroke-current stroke-[1.8] fill-none"
+            viewBox="0 0 24 24"
+          >
+            <path
+              d="M12 4v12m-5-5 5 5 5-5M5 20h14"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+          <span>original</span>
+        </a>
+      </li>
+    </ol>
+
+    <p :if={@images == []} class="mt-6 py-6 px-4 bg-tint rounded-[3px] font-brand-sans text-[14px] text-mid">
+      No images in this collection yet.
+    </p>
   </section>
-</Layouts.app>
+</Layouts.workspace>

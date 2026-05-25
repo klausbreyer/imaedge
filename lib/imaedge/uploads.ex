@@ -1,6 +1,8 @@
 defmodule Imaedge.Uploads do
   @moduledoc false
 
+  require Logger
+
   alias Imaedge.Id
   alias Imaedge.Media
   alias Imaedge.Media.UploadSession
@@ -84,7 +86,7 @@ defmodule Imaedge.Uploads do
          object_key <- original_object_key(session, image_secret),
          {:ok, original_url} <- Storage.put_file(object_key, assembled, cache: :original),
          {:ok, image} <-
-           Media.create_processing_image(session, image_secret, object_key, original_url),
+           insert_processing_image(session, image_secret, object_key, original_url),
          {:ok, session} <-
            Media.update_upload_session(session, %{
              status: "processing",
@@ -99,10 +101,66 @@ defmodule Imaedge.Uploads do
            |> Oban.insert() do
       {:ok, %{session: session, image: image}}
     else
+      {:duplicate, existing_image, orphan_key} ->
+        # Race: another upload landed the same SHA256 first. Drop the
+        # original we just put in Tigris and resolve as a duplicate.
+        Logger.info(
+          "finalize duplicate resolved session=#{session.public_id} sha256=#{session.sha256} existing_image=#{existing_image.public_id}"
+        )
+
+        if orphan_key, do: Storage.delete(orphan_key)
+
+        collection = Repo.get!(Imaedge.Media.Collection, session.collection_id)
+
+        {:ok, session} =
+          Media.update_upload_session(session, %{
+            status: "done",
+            error_message: nil,
+            finalized_at: DateTime.utc_now(:microsecond)
+          })
+
+        Media.broadcast(collection, {:upload_changed, session})
+        {:ok, %{session: session, image: existing_image, duplicate: true}}
+
       {:error, reason} ->
+        Logger.warning(
+          "finalize failed session=#{session.public_id} sha256=#{session.sha256} reason=#{inspect(reason)}"
+        )
+
         Media.fail_upload(session, reason)
         {:error, reason}
     end
+  end
+
+  defp insert_processing_image(session, image_secret, object_key, original_url) do
+    case Media.create_processing_image(session, image_secret, object_key, original_url) do
+      {:ok, image} ->
+        {:ok, image}
+
+      {:error, %Ecto.Changeset{errors: errors}} = error ->
+        if Keyword.has_key?(errors, :sha256) do
+          case existing_image_for_sha256(session) do
+            nil -> error
+            existing -> {:duplicate, existing, object_key}
+          end
+        else
+          error
+        end
+    end
+  end
+
+  defp existing_image_for_sha256(%UploadSession{} = session) do
+    # Mirrors the unique index "WHERE deleted_at IS NULL" so we always find
+    # the row that caused the constraint violation, regardless of status.
+    import Ecto.Query
+
+    Imaedge.Media.Image
+    |> where([image], image.collection_id == ^session.collection_id)
+    |> where([image], image.sha256 == ^session.sha256)
+    |> where([image], is_nil(image.deleted_at))
+    |> order_by([image], asc: image.id)
+    |> limit(1)
+    |> Repo.one()
   end
 
   defp assemble!(%UploadSession{} = session) do
