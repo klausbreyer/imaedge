@@ -37,12 +37,7 @@
         >
           <input type="hidden" name="_csrf_token" value={get_csrf_token()} />
           <input type="hidden" name="name" value="" />
-          <button
-            type="submit"
-            class="inline-flex items-center justify-center h-9 max-md:h-8 px-3.5 max-md:px-2.5 bg-ink text-paper rounded-[3px] font-medium text-[13.5px] max-md:text-[12px] leading-none tracking-[-0.005em] transition-colors hover:bg-[#1a1a1a] cursor-pointer"
-          >
-            start a collection
-          </button>
+          <.start_collection_cta />
         </form>
       </nav>
     </div>

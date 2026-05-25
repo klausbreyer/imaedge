@@ -32,6 +32,40 @@ defmodule ImaedgeWeb.CoreComponents do
   alias Phoenix.LiveView.JS
 
   @doc """
+  Renders the compact collection creation CTA used in top navigation.
+  """
+  attr :href, :string, default: nil
+  attr :rest, :global
+
+  def start_collection_cta(assigns) do
+    assigns = assign(assigns, :class, compact_nav_cta_class())
+
+    ~H"""
+    <a
+      :if={@href}
+      class={@class}
+      href={@href}
+      {@rest}
+    >
+      start a collection
+    </a>
+
+    <button
+      :if={!@href}
+      type="submit"
+      class={[@class, "cursor-pointer"]}
+      {@rest}
+    >
+      start a collection
+    </button>
+    """
+  end
+
+  defp compact_nav_cta_class do
+    "appearance-none inline-flex items-center justify-center box-border h-9 max-md:h-8 px-3.5 max-md:px-2.5 border border-ink bg-ink text-paper rounded-[3px] !font-brand-sans !font-medium !text-[13.5px] max-md:!text-[12px] !leading-none tracking-[-0.005em] whitespace-nowrap no-underline transition-colors hover:bg-[#1a1a1a]"
+  end
+
+  @doc """
   Renders flash notices.
 
   ## Examples
