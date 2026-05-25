@@ -57,31 +57,47 @@ const ShareCollectionLink = {
   mounted() {
     this.el.classList.remove("hidden")
     this.el.classList.add("inline-flex")
-
-    this.el.addEventListener("click", async () => {
-      const url = this.el.dataset.collectionUrl || window.location.href
-      const title = this.el.dataset.collectionTitle || "imaedge collection"
-      const label = this.el.querySelector("span")
-      const original = label ? label.textContent : null
-
-      try {
-        if (!navigator.share) throw new Error("browser_share_unavailable")
-
-        await navigator.share({
-          title,
-          text: "Add original photos to this imaedge collection.",
-          url,
-        })
-      } catch (err) {
-        if (err && err.name === "AbortError") return
-        await copyText(url)
-        if (label) {
-          label.textContent = "link copied"
-          setTimeout(() => { if (original !== null) label.textContent = original }, 1400)
-        }
-      }
-    })
+    bindShareLink(this.el, collectionShareData(this.el))
   },
+}
+
+function collectionShareData(el) {
+  return {
+    url: el.dataset.collectionUrl || window.location.href,
+    title: el.dataset.collectionTitle || "imaedge collection",
+    text: "Add original photos to this imaedge collection.",
+  }
+}
+
+function elementShareData(el) {
+  return {
+    url: el.dataset.shareUrl || window.location.href,
+    title: el.dataset.shareTitle || document.title || "imaedge",
+    text: el.dataset.shareText || "Open this imaedge link.",
+  }
+}
+
+function bindShareLink(el, shareData) {
+  if (el.dataset.shareBound === "true") return
+  el.dataset.shareBound = "true"
+
+  el.addEventListener("click", async () => {
+    const label = el.querySelector("span")
+    const original = label ? label.textContent : null
+
+    try {
+      if (!navigator.share) throw new Error("browser_share_unavailable")
+
+      await navigator.share(shareData)
+    } catch (err) {
+      if (err && err.name === "AbortError") return
+      await copyText(shareData.url)
+      if (label) {
+        label.textContent = "link copied"
+        setTimeout(() => { if (original !== null) label.textContent = original }, 1400)
+      }
+    }
+  })
 }
 
 async function copyText(value) {
@@ -99,8 +115,16 @@ async function copyText(value) {
   }
 }
 
+function installShareLinks() {
+  document.querySelectorAll("[data-share-link]").forEach(el => {
+    bindShareLink(el, elementShareData(el))
+  })
+}
+
 installCollectionNamePrompts()
+installShareLinks()
 window.addEventListener("phx:page-loading-stop", installCollectionNamePrompts)
+window.addEventListener("phx:page-loading-stop", installShareLinks)
 
 const csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
 const liveSocket = new LiveSocket("/live", Socket, {
