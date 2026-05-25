@@ -86,4 +86,22 @@ defmodule Imaedge.Media.Image do
     |> unique_constraint(:public_id)
     |> unique_constraint(:sha256, name: :images_collection_id_sha256_index)
   end
+
+  def public_original_url(%__MODULE__{original_key: key, original_url: fallback}) do
+    public_url(key, fallback)
+  end
+
+  def public_preview_small_url(%__MODULE__{preview_small_key: key, preview_small_url: fallback}) do
+    public_url(key, fallback)
+  end
+
+  def public_preview_large_url(%__MODULE__{preview_large_key: key, preview_large_url: fallback}) do
+    public_url(key, fallback)
+  end
+
+  defp public_url(key, _fallback) when is_binary(key) and byte_size(key) > 0 do
+    Imaedge.Storage.public_url(key)
+  end
+
+  defp public_url(_key, fallback), do: fallback
 end

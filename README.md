@@ -22,6 +22,12 @@ The dev bucket currently used by the project is:
 imaedge-dev-local
 ```
 
+The dev bucket custom domain is:
+
+```text
+https://dev-assets.imaedge.org
+```
+
 Load the local env file before starting Phoenix, for example:
 
 ```sh
@@ -59,6 +65,38 @@ AWS_SECRET_ACCESS_KEY
 AWS_ENDPOINT_URL_S3
 AWS_REGION
 BUCKET_NAME
+```
+
+Public object URLs are configured in `fly.toml` with:
+
+```text
+TIGRIS_PUBLIC_BASE_URL=https://assets.imaedge.org
+```
+
+The production bucket custom domain setup is:
+
+```sh
+flyctl storage update imaedge-prod --custom-domain assets.imaedge.org
+```
+
+DNS needs a CNAME record:
+
+```text
+assets.imaedge.org CNAME imaedge-prod.t3.tigrisbucket.io
+```
+
+Keep the CNAME in place so Tigris can issue and renew TLS certificates. If the domain is managed through Cloudflare or a similar DNS provider, keep the record in DNS-only mode so TLS terminates at Tigris.
+
+The dev bucket uses the same setup:
+
+```sh
+flyctl storage update imaedge-dev-local --custom-domain dev-assets.imaedge.org
+```
+
+DNS needs this CNAME record:
+
+```text
+dev-assets.imaedge.org CNAME imaedge-dev-local.t3.tigrisbucket.io
 ```
 
 To start your Phoenix server:

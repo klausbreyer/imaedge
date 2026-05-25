@@ -3,6 +3,7 @@ defmodule ImaedgeWeb.CollectionLive do
 
   alias Imaedge.Media
   alias Imaedge.Media.Collection
+  alias Imaedge.Media.Image
 
   def mount(%{"id" => public_id}, _session, socket) do
     collection = Media.get_collection_by_public_id!(public_id)
@@ -310,12 +311,14 @@ defmodule ImaedgeWeb.CollectionLive do
                 >
                   <div class="brand-tile-img relative aspect-square overflow-hidden rounded-[2px] max-[760px]:rounded-none bg-tint">
                     <a
-                      href={image.preview_large_url || image.original_url}
+                      href={Image.public_preview_large_url(image) || Image.public_original_url(image)}
                       class="block w-full h-full"
                     >
                       <img
                         class="w-full h-full object-cover transition-transform duration-[600ms] ease-out"
-                        src={image.preview_small_url || image.original_url}
+                        src={
+                          Image.public_preview_small_url(image) || Image.public_original_url(image)
+                        }
                         loading="lazy"
                         alt={image.original_filename}
                       />
