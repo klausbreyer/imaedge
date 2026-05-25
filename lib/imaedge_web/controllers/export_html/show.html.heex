@@ -75,13 +75,16 @@
         class="grid grid-cols-[88px_minmax(0,1fr)] max-[620px]:grid-cols-[64px_minmax(0,1fr)] gap-4 max-md:gap-3 items-center py-4 max-md:py-3"
       >
         <a
-          href={image.original_url}
+          href={Imaedge.Media.Image.public_original_url(image)}
           download={download_name(image, index)}
           class="block w-[88px] h-[88px] max-[620px]:w-16 max-[620px]:h-16 overflow-hidden rounded-[2px] bg-tint border border-black/[0.06] transition-opacity hover:opacity-90"
           title="Download original"
         >
           <img
-            src={image.preview_small_url || image.original_url}
+            src={
+              Imaedge.Media.Image.public_preview_small_url(image) ||
+                Imaedge.Media.Image.public_original_url(image)
+            }
             loading="lazy"
             alt={"Image #{index}"}
             class="w-full h-full object-cover"

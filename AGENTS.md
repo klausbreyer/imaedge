@@ -7,6 +7,7 @@ This file is the working context for AI agents in the imaedge repository.
 - Never use em dashes in any output or committed text. Use commas, parentheses, colons, or separate sentences.
 - Do not print secrets from `.env`, Fly secrets, Tigris credentials, or database credentials.
 - Do not revert user changes unless the user explicitly asks for that.
+- Do not deploy to production manually. Production deploys run through the pipeline unless the user explicitly asks for a manual production deploy.
 - Prefer small, scoped changes. Keep unrelated refactors out of task work.
 - When starting in a new worktree, first update main from the remote and rebase the current branch onto the updated main before beginning task work, unless the user explicitly says otherwise.
 - Use `rg` for searching.

@@ -10,7 +10,7 @@ primary_region = "fra"
   PORT = "8080"
   POOL_SIZE = "5"
   AWS_REGION = "auto"
-  TIGRIS_PUBLIC_BASE_URL = "https://imaedge-prod.t3.tigrisfiles.io"
+  TIGRIS_PUBLIC_BASE_URL = "https://assets.imaedge.org"
 
 [http_service]
   internal_port = 8080
