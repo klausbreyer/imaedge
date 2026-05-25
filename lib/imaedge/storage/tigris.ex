@@ -1,11 +1,24 @@
 defmodule Imaedge.Storage.Tigris do
   @moduledoc false
 
+  # Originals can be tens of megabytes and Tigris is upstream, so give the
+  # PUT a generous receive_timeout. The default Req timeout is too short for
+  # mobile uploads of full-resolution photos.
+  @put_receive_timeout :timer.minutes(5)
+  @put_pool_timeout :timer.seconds(30)
+  @delete_receive_timeout :timer.seconds(30)
+
   def put_file(key, source_path, opts \\ []) do
     body = File.read!(source_path)
     headers = request_headers(key, body, opts)
 
-    case Req.put(object_url(key), body: body, headers: headers) do
+    case Req.put(object_url(key),
+           body: body,
+           headers: headers,
+           receive_timeout: @put_receive_timeout,
+           pool_timeout: @put_pool_timeout,
+           retry: false
+         ) do
       {:ok, %{status: status}} when status in 200..299 ->
         {:ok, public_url(key)}
 
@@ -20,7 +33,11 @@ defmodule Imaedge.Storage.Tigris do
   def delete(key) do
     headers = signed_headers("DELETE", object_url(key), [], "")
 
-    case Req.delete(object_url(key), headers: headers) do
+    case Req.delete(object_url(key),
+           headers: headers,
+           receive_timeout: @delete_receive_timeout,
+           retry: false
+         ) do
       {:ok, %{status: status}} when status in [200, 202, 204, 404] -> :ok
       {:ok, response} -> {:error, {:tigris_delete_failed, response.status, response.body}}
       {:error, reason} -> {:error, reason}

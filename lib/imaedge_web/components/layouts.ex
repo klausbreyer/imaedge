@@ -70,13 +70,13 @@ defmodule ImaedgeWeb.Layouts do
     ~H"""
     <div class="font-brand-sans text-ink text-[15.5px] leading-[1.55] tracking-[-0.01em] bg-paper min-h-screen antialiased selection:bg-brand-accent selection:text-ink">
       <header class="sticky top-0 z-50 bg-paper/85 backdrop-blur-md backdrop-saturate-150 border-b border-black/[0.06]">
-        <div class="max-w-[1320px] mx-auto px-8 max-md:px-3 max-[460px]:px-2.5 flex items-center justify-between h-20 gap-6">
+        <div class="max-w-[1320px] mx-auto px-8 max-md:px-3 max-[460px]:px-2.5 flex items-center justify-between h-20 max-md:h-12 gap-6">
           <a
-            class="inline-flex items-center gap-3 font-bold text-[26px] max-md:text-[22px] tracking-[-0.025em] text-ink"
+            class="inline-flex items-center gap-3 max-md:gap-2 font-bold text-[26px] max-md:text-[19px] tracking-[-0.025em] text-ink"
             href={~p"/"}
             aria-label="imaedge"
           >
-            <svg class="w-10 h-10 max-md:w-9 max-md:h-9 block" viewBox="0 0 64 64" aria-hidden="true">
+            <svg class="w-10 h-10 max-md:w-7 max-md:h-7 block" viewBox="0 0 64 64" aria-hidden="true">
               <path
                 d="M 14 4 H 50 a 10 10 0 0 1 10 10 V 36 L 36 60 H 14 a 10 10 0 0 1 -10 -10 V 14 a 10 10 0 0 1 10 -10 Z"
                 fill="#0a0a0a"
@@ -100,7 +100,7 @@ defmodule ImaedgeWeb.Layouts do
           <div class="inline-flex items-center gap-[18px]">
             <a
               :if={@show_new_collection}
-              class="px-3.5 py-2 bg-ink text-paper rounded-[3px] font-medium text-[13.5px] transition-colors hover:bg-[#1a1a1a] max-[480px]:hidden"
+              class="inline-flex items-center justify-center h-9 max-md:h-7 px-3.5 max-md:px-2.5 bg-ink text-paper rounded-[3px] font-medium text-[13.5px] max-md:text-[12px] leading-none transition-colors hover:bg-[#1a1a1a]"
               href={~p"/"}
             >
               + new collection
@@ -113,7 +113,7 @@ defmodule ImaedgeWeb.Layouts do
         {render_slot(@inner_block)}
       </main>
 
-      <footer class="max-w-[1320px] mx-auto px-8 max-md:px-3 max-[460px]:px-2.5 pt-8 pb-10 max-md:pt-[26px] max-md:pb-[30px] border-t border-black/[0.06] mt-[clamp(32px,4vw,56px)] max-md:mt-6 flex justify-between gap-[18px] max-[620px]:flex-col max-[620px]:gap-1.5 font-brand-sans text-[13px] text-mid tracking-[-0.005em]">
+      <footer class="max-w-[1320px] mx-auto px-8 max-md:px-3 max-[460px]:px-2.5 pt-8 pb-10 max-md:pt-3 max-md:pb-4 border-t border-black/[0.06] mt-[clamp(32px,4vw,56px)] max-md:mt-3 flex items-center justify-between gap-3 font-brand-sans text-[12px] max-md:text-[11px] text-mid tracking-[-0.005em]">
         <span>Images. Together. At The Edge.</span>
         <a href={~p"/"} class="hover:text-ink transition-colors">© 2026 imaedge</a>
       </footer>

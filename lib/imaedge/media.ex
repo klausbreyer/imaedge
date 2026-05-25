@@ -24,6 +24,31 @@ defmodule Imaedge.Media do
     Repo.get_by!(Collection, public_id: public_id)
   end
 
+  @doc """
+  Returns the most recent activity timestamp for a collection.
+
+  Considers the collection itself, every image (including deletions), and
+  every upload session. Falls back to the collection's `inserted_at` when
+  there is no other activity yet.
+  """
+  def last_activity_at(%Collection{} = collection) do
+    image_max =
+      Image
+      |> where([image], image.collection_id == ^collection.id)
+      |> select([image], max(image.updated_at))
+      |> Repo.one()
+
+    upload_max =
+      UploadSession
+      |> where([upload], upload.collection_id == ^collection.id)
+      |> select([upload], max(upload.updated_at))
+      |> Repo.one()
+
+    [collection.updated_at, collection.inserted_at, image_max, upload_max]
+    |> Enum.reject(&is_nil/1)
+    |> Enum.max(DateTime, fn -> collection.inserted_at end)
+  end
+
   def list_gallery_images(%Collection{} = collection) do
     Image
     |> where([image], image.collection_id == ^collection.id)

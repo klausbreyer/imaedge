@@ -205,7 +205,7 @@ export const UploadQueue = {
     this.csrf = document.querySelector("meta[name='csrf-token']").content
     this.input = this.el.querySelector("#image-picker")
     this.queueEl = this.el.querySelector("#client-queue")
-    this.storageEl = this.el.querySelector("#storage-estimate")
+    this.storageEl = document.querySelector("#storage-estimate")
     this.concurrencyEl = this.el.querySelector("#upload-concurrency")
     this.logEl = document.querySelector("#debug-log-output")
     this.copyLogButton = document.querySelector("#copy-debug-log")
@@ -213,6 +213,7 @@ export const UploadQueue = {
     this.records = []
     this.active = 0
     this.poll = null
+    this.renderScheduled = false
 
     this.input.addEventListener("click", () => this.log("image picker tapped"))
     this.input.addEventListener("change", event => {
@@ -408,27 +409,79 @@ export const UploadQueue = {
 
   async uploadMissingChunks(record, missingChunks) {
     const started = performance.now()
-    let uploaded = (record.totalChunks - missingChunks.length) * record.chunkSize
+    const initialDone = record.totalChunks - missingChunks.length
+    let uploaded = initialDone * record.chunkSize
+    let doneCount = initialDone
+    let queue = [...missingChunks]
 
-    for (const index of missingChunks) {
+    while (queue.length) {
+      const index = queue.shift()
       const start = index * record.chunkSize
       const end = Math.min(start + record.chunkSize, record.size)
       const chunk = record.file.slice(start, end)
 
-      await fetch(`/i/${this.collectionId}/uploads/${record.sessionId}/chunks/${index}`, {
-        method: "PUT",
-        headers: {"x-csrf-token": this.csrf, "content-type": "application/octet-stream"},
-        body: chunk
-      }).then(async response => {
-        if (!response.ok) throw new Error(`chunk ${index} failed HTTP ${response.status}: ${await response.text()}`)
-      })
+      await this.putChunkWithRetry(record, index, chunk)
 
       uploaded += chunk.size
+      doneCount += 1
       record.progress = Math.min(99, Math.round((uploaded / record.size) * 100))
+      record.chunksDone = doneCount
+      record.chunksTotal = record.totalChunks
       const seconds = Math.max((performance.now() - started) / 1000, 0.1)
       record.speed = `${formatBytes(uploaded / seconds)}/s`
-      this.render()
+      this.scheduleRender()
     }
+
+    // Resync: if the server still reports missing chunks (e.g. a stall
+    // dropped a write), upload those before finalize.
+    const status = await this.fetchStatus(record)
+    if (status.missing_chunks && status.missing_chunks.length) {
+      this.log(`re-uploading ${status.missing_chunks.length} chunk(s) reported missing by server`)
+      await this.uploadMissingChunks(record, status.missing_chunks)
+    }
+  },
+
+  async putChunkWithRetry(record, index, chunk) {
+    const maxAttempts = 4
+    let attempt = 0
+    let lastError
+
+    while (attempt < maxAttempts) {
+      attempt += 1
+      const controller = new AbortController()
+      // 90s per chunk gives slow mobile networks room without hanging forever.
+      const timer = setTimeout(() => controller.abort(), 90_000)
+
+      try {
+        const response = await fetch(
+          `/i/${this.collectionId}/uploads/${record.sessionId}/chunks/${index}`,
+          {
+            method: "PUT",
+            headers: {"x-csrf-token": this.csrf, "content-type": "application/octet-stream"},
+            body: chunk,
+            signal: controller.signal,
+          },
+        )
+
+        clearTimeout(timer)
+
+        if (response.ok) return
+
+        const detail = await response.text().catch(() => "")
+        lastError = new Error(`chunk ${index} HTTP ${response.status}: ${detail}`)
+      } catch (error) {
+        clearTimeout(timer)
+        lastError = error
+      }
+
+      if (attempt < maxAttempts) {
+        const backoff = Math.min(2_000 * attempt, 8_000)
+        this.log(`chunk ${index} attempt ${attempt} failed (${String(lastError)}), retrying in ${backoff}ms`)
+        await new Promise(resolve => setTimeout(resolve, backoff))
+      }
+    }
+
+    throw lastError
   },
 
   async finalize(record) {
@@ -490,6 +543,15 @@ export const UploadQueue = {
     }
   },
 
+  scheduleRender() {
+    if (this.renderScheduled) return
+    this.renderScheduled = true
+    window.requestAnimationFrame(() => {
+      this.renderScheduled = false
+      this.render()
+    })
+  },
+
   render() {
     const waitingEl = document.querySelector("#queue-waiting")
     if (waitingEl) {
@@ -498,22 +560,33 @@ export const UploadQueue = {
     }
 
     if (!this.records.length) {
-      this.queueEl.innerHTML = `<div class="text-[14px] text-mid py-3 px-3.5 bg-tint rounded-[3px]">Nothing waiting locally.</div>`
+      this.queueEl.innerHTML = ""
       return
     }
 
-    this.queueEl.innerHTML = this.records.map(record => `
-      <article class="bg-white border border-black/[0.06] rounded-[3px] py-2.5 px-3 flex flex-col gap-2 font-brand-sans text-[13.5px]">
-        <div class="flex items-baseline justify-between gap-3">
-          <strong class="font-medium text-ink truncate min-w-0">${escapeHtml(record.name)}</strong>
-          <span class="font-brand-mono text-[11.5px] text-mid whitespace-nowrap">${escapeHtml(record.status)}${record.speed ? ` · ${escapeHtml(record.speed)}` : ""}</span>
-        </div>
-        <div class="h-1 bg-tint overflow-hidden">
-          <div class="block h-full bg-ink transition-[width] duration-200" style="width:${record.progress || 0}%"></div>
-        </div>
-        ${record.error ? `<code class="font-brand-mono text-[11.5px] text-warn break-all">${escapeHtml(record.error)}</code>` : ""}
-      </article>
-    `).join("")
+    this.queueEl.innerHTML = this.records.map(record => {
+      const progress = record.progress || 0
+      const isActive = ["uploading", "preparing", "finalizing"].includes(record.status)
+      const chunks =
+        record.chunksTotal && ["uploading", "finalizing"].includes(record.status)
+          ? ` · ${record.chunksDone}/${record.chunksTotal}`
+          : ""
+      const speed = record.status === "uploading" && record.speed ? ` · ${escapeHtml(record.speed)}` : ""
+      const pct = isActive ? ` · ${progress}%` : ""
+
+      return `
+        <article class="bg-white border border-black/[0.06] rounded-[3px] py-2.5 px-3 flex flex-col gap-2 font-brand-sans text-[13.5px]">
+          <div class="flex items-baseline justify-between gap-3">
+            <strong class="font-medium text-ink truncate min-w-0">${escapeHtml(record.name)}</strong>
+            <span class="font-brand-mono text-[11.5px] text-mid whitespace-nowrap">${escapeHtml(record.status)}${chunks}${speed}${pct}</span>
+          </div>
+          <div class="h-1 bg-tint overflow-hidden ${isActive ? "queue-bar-active" : ""}">
+            <div class="block h-full bg-ink transition-[width] duration-200" style="width:${progress}%"></div>
+          </div>
+          ${record.error ? `<code class="font-brand-mono text-[11.5px] text-warn break-all">${escapeHtml(record.error)}</code>` : ""}
+        </article>
+      `
+    }).join("")
   },
 
   log(message) {

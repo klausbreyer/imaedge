@@ -11,5 +11,15 @@ export const GalleryActions = {
         this.pushEvent("delete", {id: button.dataset.deleteId})
       }
     })
+
+    this.el.addEventListener("change", event => {
+      const input = event.target.closest("input[type='datetime-local'][data-image-id]")
+      if (!input || !this.el.contains(input) || !input.value) return
+
+      this.pushEvent("set_time", {
+        "image-id": input.dataset.imageId,
+        datetime: input.value,
+      })
+    })
   }
 }
