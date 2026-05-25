@@ -1,0 +1,103 @@
+<Layouts.marketing_shell flash={@flash}>
+  <article class="max-w-[1320px] mx-auto px-8 max-md:px-4 max-[460px]:px-3 py-[clamp(48px,7vw,96px)] max-md:py-[40px]">
+    <header class="mb-[clamp(36px,5vw,64px)] max-md:mb-8 max-w-[40ch]">
+      <h1 class="font-brand-sans font-black text-[clamp(40px,6vw,84px)] max-md:text-[36px] leading-[0.95] tracking-[-0.04em] text-ink">
+        Where your data <span class="text-brand-accent-d italic">actually</span> lives.
+      </h1>
+    </header>
+
+    <div class="grid grid-cols-[1fr_1.4fr] gap-[clamp(32px,5vw,80px)] max-[820px]:grid-cols-1 max-[820px]:gap-8">
+      <aside class="text-mid text-[14px] leading-[1.6] tracking-[-0.005em]">
+        <p>
+          No analytics, no third-party trackers, no cookies for behavioral profiling. The list below is every external service that touches a request.
+        </p>
+      </aside>
+
+      <div class="flex flex-col gap-[clamp(20px,2.5vw,32px)] max-w-[64ch]">
+        <section class="flex flex-col gap-3">
+          <h2 class="font-bold text-[clamp(22px,2.4vw,30px)] max-md:text-[20px] leading-[1.15] tracking-[-0.025em] text-ink">
+            No tracking.
+          </h2>
+          <p class="text-ink-2 text-[16px] max-md:text-[15px] leading-[1.6]">
+            There is no analytics script, no pixel, no session recorder, no behavioral cookie. The reason is partly principle, partly performance: every tracker is bytes you have to download before your photo starts uploading.
+          </p>
+          <p class="text-ink-2 text-[16px] max-md:text-[15px] leading-[1.6]">
+            Client-side JavaScript is kept to the minimum required for the upload queue, hashing, and resumable chunking. Nothing else runs in your browser.
+          </p>
+        </section>
+
+        <section class="flex flex-col gap-4">
+          <h2 class="font-bold text-[clamp(22px,2.4vw,30px)] max-md:text-[20px] leading-[1.15] tracking-[-0.025em] text-ink">
+            Services that handle a request.
+          </h2>
+
+          <ul class="list-none flex flex-col gap-3.5">
+            <li class="bg-white border border-black/[0.06] rounded-[12px] p-5 max-md:p-4 flex flex-col gap-1.5">
+              <div class="flex items-baseline justify-between gap-3 flex-wrap">
+                <h3 class="font-bold text-[17px] tracking-[-0.015em] text-ink">Tigris</h3>
+                <span class="font-brand-mono text-[12px] text-mid">object storage, global</span>
+              </div>
+              <p class="text-ink-2 text-[15px] leading-[1.55]">
+                Holds the original image files and the generated previews. Tigris is globally distributed: new uploads land first in the region closest to the uploader, then replicate from there.
+              </p>
+            </li>
+
+            <li class="bg-white border border-black/[0.06] rounded-[12px] p-5 max-md:p-4 flex flex-col gap-1.5">
+              <div class="flex items-baseline justify-between gap-3 flex-wrap">
+                <h3 class="font-bold text-[17px] tracking-[-0.015em] text-ink">Fly.io</h3>
+                <span class="font-brand-mono text-[12px] text-mid">application hosting</span>
+              </div>
+              <p class="text-ink-2 text-[15px] leading-[1.55]">
+                Runs the Phoenix application that serves the site, handles uploads, and processes images.
+              </p>
+            </li>
+
+            <li class="bg-white border border-black/[0.06] rounded-[12px] p-5 max-md:p-4 flex flex-col gap-1.5">
+              <div class="flex items-baseline justify-between gap-3 flex-wrap">
+                <h3 class="font-bold text-[17px] tracking-[-0.015em] text-ink">Hetzner</h3>
+                <span class="font-brand-mono text-[12px] text-mid">database, Germany</span>
+              </div>
+              <p class="text-ink-2 text-[15px] leading-[1.55]">
+                Hosts the Postgres database that stores collection metadata, upload state, and image records. No raw image bytes are stored here.
+              </p>
+            </li>
+
+            <li class="bg-white border border-black/[0.06] rounded-[12px] p-5 max-md:p-4 flex flex-col gap-1.5">
+              <div class="flex items-baseline justify-between gap-3 flex-wrap">
+                <h3 class="font-bold text-[17px] tracking-[-0.015em] text-ink">Cloudflare</h3>
+                <span class="font-brand-mono text-[12px] text-mid">DNS only, no caching</span>
+              </div>
+              <p class="text-ink-2 text-[15px] leading-[1.55]">
+                Resolves the domain. There is no proxy and no caching layer in front of the application. Cloudflare does not see your requests beyond DNS lookup.
+              </p>
+            </li>
+          </ul>
+        </section>
+
+        <section class="flex flex-col gap-3">
+          <h2 class="font-bold text-[clamp(22px,2.4vw,30px)] max-md:text-[20px] leading-[1.15] tracking-[-0.025em] text-ink">
+            What we store about you.
+          </h2>
+          <p class="text-ink-2 text-[16px] max-md:text-[15px] leading-[1.6]">
+            For each collection: the collection ID, the images you upload, their EXIF data, and an animal handle for the device that uploaded each image. No account, no email, no IP log beyond what the hosting layer keeps for operating the service.
+          </p>
+        </section>
+
+        <section class="flex flex-col gap-3">
+          <h2 class="font-bold text-[clamp(22px,2.4vw,30px)] max-md:text-[20px] leading-[1.15] tracking-[-0.025em] text-ink">
+            Questions?
+          </h2>
+          <p class="text-ink-2 text-[16px] max-md:text-[15px] leading-[1.6]">
+            Email <a
+              class="text-ink underline decoration-black/20 underline-offset-2 hover:decoration-ink transition-colors"
+              href="mailto:kb@v01.io"
+            >kb@v01.io</a>. For legal details about who operates this, see <a
+              class="text-ink underline decoration-black/20 underline-offset-2 hover:decoration-ink transition-colors"
+              href="https://v01.io"
+            >v01.io</a>.
+          </p>
+        </section>
+      </div>
+    </div>
+  </article>
+</Layouts.marketing_shell>
