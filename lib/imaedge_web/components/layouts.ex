@@ -83,11 +83,11 @@ defmodule ImaedgeWeb.Layouts do
               />
               <path d="M 60 36 L 36 60 L 36 56.8 L 56.8 36 Z" fill="#22d3ee" />
               <text
-                x="31"
-                y="40"
+                x="30"
+                y="45"
                 text-anchor="middle"
                 font-family="ui-sans-serif, system-ui, -apple-system, 'SF Pro Display', 'Helvetica Neue', Inter, Arial, sans-serif"
-                font-size="30"
+                font-size="44"
                 font-weight="800"
                 fill="#fafaf7"
               >

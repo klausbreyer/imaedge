@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 400" role="img" aria-label="imaedge">
+  <rect width="1200" height="400" rx="28" fill="#f6f5f1"/>
+
+  <g transform="translate(176 128) scale(2.25)">
+    <path d="M 14 4 H 50 a 10 10 0 0 1 10 10 V 36 L 36 60 H 14 a 10 10 0 0 1 -10 -10 V 14 a 10 10 0 0 1 10 -10 Z" fill="#0b1020"/>
+    <path d="M 60 36 L 36 60 L 36 56.8 L 56.8 36 Z" fill="#22d3ee"/>
+    <text x="30" y="45" text-anchor="middle"
+          font-family="ui-sans-serif, system-ui, -apple-system, 'SF Pro Display', 'Helvetica Neue', Inter, Arial, sans-serif"
+          font-size="44" font-weight="800" fill="#f6f5f1"
+          style="font-feature-settings:'kern' 1;">æ</text>
+  </g>
+
+  <text x="352" y="248"
+        font-family="ui-sans-serif, system-ui, -apple-system, 'SF Pro Display', 'Helvetica Neue', Inter, Arial, sans-serif"
+        font-size="144" font-weight="800"
+        style="font-feature-settings:'kern' 1; letter-spacing:-0.01em;">
+    <tspan fill="#0b1020">im</tspan><tspan fill="#22d3ee">æ</tspan><tspan fill="#0b1020">dge</tspan>
+  </text>
+</svg>
