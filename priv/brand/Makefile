@@ -2,8 +2,9 @@
 #
 # Renders favicon.svg into a set of raster outputs and copies the source
 # SVG into the Phoenix static dir. Sources live next to this Makefile; the
-# build output lands in ../static/ and ../static/images/brand/ and is not
-# checked into git.
+# build output lands in ../static/ and ../static/images/brand/. The small
+# root browser icons are checked into git, while ../static/images/brand/
+# remains generated local output.
 #
 # Renderer is chosen at runtime:
 #   1. rsvg-convert   librsvg CLI, native SVG transparency, system fonts via

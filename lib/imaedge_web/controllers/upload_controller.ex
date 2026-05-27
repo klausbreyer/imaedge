@@ -133,7 +133,17 @@ defmodule ImaedgeWeb.UploadController do
   end
 
   defp read_chunk_body(conn, chunk_size) do
-    read_body(conn, length: chunk_size + 1024, read_length: chunk_size + 1024)
+    read_body(conn,
+      length: chunk_size + 1024,
+      read_length: chunk_size + 1024,
+      read_timeout: upload_config(:chunk_read_timeout)
+    )
+  end
+
+  defp upload_config(key) do
+    :imaedge
+    |> Application.fetch_env!(:uploads)
+    |> Keyword.fetch!(key)
   end
 
   defp int_param(nil), do: nil

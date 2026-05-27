@@ -134,7 +134,7 @@ defmodule ImaedgeWeb.Layouts do
     <div class="font-brand-sans text-ink text-[16px] leading-[1.55] tracking-[-0.01em] bg-paper antialiased overflow-x-hidden selection:bg-brand-accent selection:text-ink">
       <div class="bg-ink text-paper border-b border-black/[0.06] text-[13px] max-md:text-[12px] font-semibold tracking-[-0.005em] uppercase">
         <div class="max-w-[1320px] mx-auto px-8 max-md:px-4 max-[460px]:px-3 py-2 max-md:py-1.5 flex items-center justify-center gap-2 flex-wrap text-center">
-          <span>this is an experiment. it is free, but also without any guarantee.</span>
+          <span>free, but without any guarantee.</span>
         </div>
       </div>
 

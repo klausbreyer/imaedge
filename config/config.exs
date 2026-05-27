@@ -18,6 +18,7 @@ config :imaedge, Oban,
 
 config :imaedge, :uploads,
   chunk_size: 1_048_576,
+  chunk_read_timeout: :timer.minutes(2),
   tmp_dir: "tmp/uploads"
 
 config :imaedge, :object_storage,

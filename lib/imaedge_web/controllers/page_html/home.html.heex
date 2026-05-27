@@ -81,12 +81,28 @@
             class="absolute top-0 left-0 w-[58%] aspect-[4/5] rounded-[14px] overflow-hidden bg-tint z-[3] transition-transform duration-[600ms] ease-[cubic-bezier(0.2,0.7,0.2,1)] shadow-[0_1px_2px_rgba(10,10,10,0.04),0_20px_40px_-16px_rgba(10,10,10,0.22),0_40px_80px_-24px_rgba(10,10,10,0.18)]"
             style="transform: rotate(-3.5deg);"
           >
-            <img
-              class="w-full h-full object-cover"
-              src="https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=900&amp;q=85&amp;auto=format&amp;fit=crop"
-              alt=""
-              loading="eager"
-            />
+            <picture class="block w-full h-full">
+              <source
+                type="image/avif"
+                srcset={"#{~p"/images/home/whale-4x5-360.avif"} 360w, #{~p"/images/home/whale-4x5-720.avif"} 720w"}
+                sizes="(max-width: 980px) 58vw, 325px"
+              />
+              <source
+                type="image/webp"
+                srcset={"#{~p"/images/home/whale-4x5-360.webp"} 360w, #{~p"/images/home/whale-4x5-720.webp"} 720w"}
+                sizes="(max-width: 980px) 58vw, 325px"
+              />
+              <img
+                class="w-full h-full object-cover"
+                src={~p"/images/home/whale-4x5-720.webp"}
+                width="720"
+                height="900"
+                alt=""
+                loading="eager"
+                decoding="async"
+                fetchpriority="high"
+              />
+            </picture>
             <span class="absolute left-2.5 top-2.5 inline-flex items-center gap-1.5 px-2 py-1 bg-ink/[0.78] backdrop-blur-md rounded-[3px] font-brand-mono text-[10.5px] text-white tracking-[0.01em]">
               quiet-otter
             </span>
@@ -95,12 +111,27 @@
             class="absolute top-[14%] right-0 w-[52%] aspect-[4/5] rounded-[14px] overflow-hidden bg-tint z-[2] transition-transform duration-[600ms] ease-[cubic-bezier(0.2,0.7,0.2,1)] shadow-[0_1px_2px_rgba(10,10,10,0.04),0_20px_40px_-16px_rgba(10,10,10,0.22),0_40px_80px_-24px_rgba(10,10,10,0.18)]"
             style="transform: rotate(3.5deg);"
           >
-            <img
-              class="w-full h-full object-cover"
-              src="https://images.unsplash.com/photo-1535473895227-bdecb20fb157?w=900&amp;q=85&amp;auto=format&amp;fit=crop"
-              alt=""
-              loading="eager"
-            />
+            <picture class="block w-full h-full">
+              <source
+                type="image/avif"
+                srcset={"#{~p"/images/home/lagoon-4x5-360.avif"} 360w, #{~p"/images/home/lagoon-4x5-720.avif"} 720w"}
+                sizes="(max-width: 980px) 52vw, 291px"
+              />
+              <source
+                type="image/webp"
+                srcset={"#{~p"/images/home/lagoon-4x5-360.webp"} 360w, #{~p"/images/home/lagoon-4x5-720.webp"} 720w"}
+                sizes="(max-width: 980px) 52vw, 291px"
+              />
+              <img
+                class="w-full h-full object-cover"
+                src={~p"/images/home/lagoon-4x5-720.webp"}
+                width="720"
+                height="900"
+                alt=""
+                loading="eager"
+                decoding="async"
+              />
+            </picture>
             <span class="absolute left-2.5 top-2.5 inline-flex items-center gap-1.5 px-2 py-1 bg-brand-accent/[0.92] backdrop-blur-md rounded-[3px] font-brand-mono text-[10.5px] text-ink tracking-[0.01em]">
               golden-fox
             </span>
@@ -109,12 +140,27 @@
             class="absolute bottom-0 left-[14%] w-[54%] aspect-[5/4] rounded-[14px] overflow-hidden bg-tint z-[4] transition-transform duration-[600ms] ease-[cubic-bezier(0.2,0.7,0.2,1)] shadow-[0_1px_2px_rgba(10,10,10,0.04),0_20px_40px_-16px_rgba(10,10,10,0.22),0_40px_80px_-24px_rgba(10,10,10,0.18)]"
             style="transform: rotate(-1.5deg);"
           >
-            <img
-              class="w-full h-full object-cover"
-              src="https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=900&amp;q=85&amp;auto=format&amp;fit=crop"
-              alt=""
-              loading="eager"
-            />
+            <picture class="block w-full h-full">
+              <source
+                type="image/avif"
+                srcset={"#{~p"/images/home/grill-5x4-400.avif"} 400w, #{~p"/images/home/grill-5x4-800.avif"} 800w"}
+                sizes="(max-width: 980px) 54vw, 302px"
+              />
+              <source
+                type="image/webp"
+                srcset={"#{~p"/images/home/grill-5x4-400.webp"} 400w, #{~p"/images/home/grill-5x4-800.webp"} 800w"}
+                sizes="(max-width: 980px) 54vw, 302px"
+              />
+              <img
+                class="w-full h-full object-cover"
+                src={~p"/images/home/grill-5x4-800.webp"}
+                width="800"
+                height="640"
+                alt=""
+                loading="eager"
+                decoding="async"
+              />
+            </picture>
             <span class="absolute left-2.5 top-2.5 inline-flex items-center gap-1.5 px-2 py-1 bg-ink/[0.78] backdrop-blur-md rounded-[3px] font-brand-mono text-[10.5px] text-white tracking-[0.01em]">
               quiet-otter
             </span>
@@ -123,12 +169,27 @@
             class="absolute bottom-[8%] right-[4%] w-[32%] aspect-square rounded-[14px] overflow-hidden bg-tint z-[1] transition-transform duration-[600ms] ease-[cubic-bezier(0.2,0.7,0.2,1)] shadow-[0_1px_2px_rgba(10,10,10,0.04),0_20px_40px_-16px_rgba(10,10,10,0.22),0_40px_80px_-24px_rgba(10,10,10,0.18)]"
             style="transform: rotate(5.5deg);"
           >
-            <img
-              class="w-full h-full object-cover"
-              src="https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=600&amp;q=85&amp;auto=format&amp;fit=crop"
-              alt=""
-              loading="eager"
-            />
+            <picture class="block w-full h-full">
+              <source
+                type="image/avif"
+                srcset={"#{~p"/images/home/mailboxes-square-240.avif"} 240w, #{~p"/images/home/mailboxes-square-480.avif"} 480w"}
+                sizes="(max-width: 980px) 32vw, 179px"
+              />
+              <source
+                type="image/webp"
+                srcset={"#{~p"/images/home/mailboxes-square-240.webp"} 240w, #{~p"/images/home/mailboxes-square-480.webp"} 480w"}
+                sizes="(max-width: 980px) 32vw, 179px"
+              />
+              <img
+                class="w-full h-full object-cover"
+                src={~p"/images/home/mailboxes-square-480.webp"}
+                width="480"
+                height="480"
+                alt=""
+                loading="eager"
+                decoding="async"
+              />
+            </picture>
             <span class="absolute left-2 top-2 inline-flex items-center gap-1 px-1.5 py-0.5 bg-brand-accent/[0.92] backdrop-blur-md rounded-[3px] font-brand-mono text-[9px] text-ink tracking-[0.01em]">
               golden-fox
             </span>
