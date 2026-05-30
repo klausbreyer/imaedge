@@ -7,6 +7,7 @@ defmodule ImaedgeWeb.CollectionLive do
 
   def mount(%{"id" => public_id}, _session, socket) do
     collection = Media.get_collection_by_public_id!(public_id)
+    collection_name = Collection.display_name(collection)
 
     if connected?(socket) do
       Media.subscribe(collection)
@@ -14,7 +15,13 @@ defmodule ImaedgeWeb.CollectionLive do
 
     {:ok,
      socket
-     |> assign(:page_title, Collection.display_name(collection))
+     |> assign(:page_title, collection_name)
+     |> assign(:meta_title, "#{collection_name} | imaedge")
+     |> assign(
+       :meta_description,
+       "Upload and collect original-quality photos in this shared imaedge collection."
+     )
+     |> assign(:meta_url, url(~p"/i/#{collection.public_id}"))
      |> assign(:collection, collection)
      |> assign(:image_count, 0)
      |> assign(:upload_count, 0)

@@ -1,5 +1,37 @@
 # Imaedge
 
+## Why this exists
+
+We have had this problem on every trip so far: my wife and I want to collect our photos together, but none of the usual options really fits.
+
+Apple does not work for us because shared photo albums compress the images. Google Photos does not work either because everything has to be synced. On top of that, we need the original files afterwards so we can add them to WordPress while we are still on the road, and later turn them into a photo album.
+
+And since we now live in times where you can build a solution faster than you can spend time being annoyed by the problem, I built imaedge.
+
+With imaedge, anyone can create a secret link and share it with others. Everyone with the link can upload photos into one shared collection, and the original files stay intact.
+
+You can also change the order of the images by changing the date from the EXIF data. I also paid special attention to the upload itself: images are uploaded in small chunks. In the places where we often travel, reception is bad. Normal uploads take forever, break, or leave you guessing what state the upload is actually in.
+
+imaedge is open source, in case you want to host it for yourself.
+
+If you ever want to collect original photos together, without accounts, without compression, without constant syncing, and without a lot of fuss: that is what this is built for.
+
+## Warum es das gibt
+
+Wir hatten dieses Problem bisher in jedem Urlaub: Meine Frau und ich wollen unsere Fotos gemeinsam sammeln, aber keine der üblichen Lösungen passt so richtig.
+
+Apple funktioniert für uns nicht, weil geteilte Fotoalben die Bilder komprimieren. Google Fotos funktioniert auch nicht, weil man immer alles synchronisieren muss. Noch dazu brauchen wir die Bilder danach wieder im Original, um von unterwegs WordPress damit zu befüllen und später ein Fotoalbum daraus zu machen.
+
+Und weil wir inzwischen in Zeiten leben, in denen man schneller eine Lösung gebaut hat, als man sich lange über das Problem aufregt, habe ich imaedge gebaut.
+
+Damit kann jeder einen geheimen Link erstellen und mit anderen teilen. Alle mit dem Link können Fotos in eine gemeinsame Sammlung hochladen, und die Originaldateien bleiben erhalten.
+
+Man kann außerdem die Reihenfolge der Bilder anpassen, indem man das Datum aus den EXIF-Daten ändert. Besonders wichtig war mir auch der Upload selbst: Die Bilder werden in kleine Chunks aufgeteilt hochgeladen. Gerade dort, wo wir oft Urlaub machen, ist der Empfang schlecht. Normale Uploads dauern ewig, brechen ab, oder man weiß nicht, in welchem Zustand sie gerade sind.
+
+imaedge ist Open Source, falls ihr es für euch selbst aufsetzen wollt.
+
+Falls ihr also mal gemeinsam Originalfotos sammeln wollt, ohne Account, ohne Komprimierung, ohne dauerndes Synchronisieren und ohne großes Theater: Dafür ist es gebaut.
+
 ## Local development
 
 Install dependencies and set up the database:

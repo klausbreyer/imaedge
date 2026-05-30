@@ -10,6 +10,14 @@ defmodule ImaedgeWeb.PageControllerTest do
     assert response =~ "Start a collection"
     assert response =~ "data-collection-name-form"
     assert response =~ "noindex"
+    assert response =~ ~s(<meta property="og:title" content="imaedge")
+    assert response =~ ~s(<meta property="og:type" content="website")
+    assert response =~ ~s(<meta property="og:url" content="#{ImaedgeWeb.Endpoint.url()}/")
+
+    assert response =~
+             ~s(<meta property="og:image" content="#{ImaedgeWeb.Endpoint.url()}/apple-touch-icon.png")
+
+    assert response =~ ~s(<meta name="twitter:card" content="summary")
   end
 
   test "POST /collections creates a named collection with a place URL", %{conn: conn} do
@@ -39,6 +47,21 @@ defmodule ImaedgeWeb.PageControllerTest do
     assert html =~ "share"
   end
 
+  test "collection page includes share metadata", %{conn: conn} do
+    {:ok, collection} = Media.create_collection(%{name: "Beach Phone Dump"})
+
+    conn = get(conn, ~p"/i/#{collection.public_id}")
+    response = html_response(conn, 200)
+
+    assert response =~ ~s(<meta property="og:title" content="Beach Phone Dump | imaedge")
+
+    assert response =~
+             ~s(<meta property="og:url" content="#{ImaedgeWeb.Endpoint.url()}/i/#{collection.public_id}")
+
+    assert response =~
+             ~s(<meta name="description" content="Upload and collect original-quality photos in this shared imaedge collection.")
+  end
+
   test "export page uses compact header actions", %{conn: conn} do
     {:ok, collection} = Media.create_collection(%{name: "Beach Phone Dump"})
 
@@ -53,5 +76,17 @@ defmodule ImaedgeWeb.PageControllerTest do
     refute response =~ "back to workspace"
     refute response =~ "print / save PDF"
     refute response =~ "imaedge.app/i/#{collection.public_id}"
+  end
+
+  test "export page includes export metadata", %{conn: conn} do
+    {:ok, collection} = Media.create_collection(%{name: "Beach Phone Dump"})
+
+    conn = get(conn, ~p"/i/#{collection.public_id}/export")
+    response = html_response(conn, 200)
+
+    assert response =~ ~s(<meta property="og:title" content="Export Beach Phone Dump | imaedge")
+
+    assert response =~
+             ~s(<meta property="og:url" content="#{ImaedgeWeb.Endpoint.url()}/i/#{collection.public_id}/export")
   end
 end

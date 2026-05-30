@@ -1,11 +1,30 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
+    <% meta_title = Layouts.meta_title(assigns) %>
+    <% meta_description = Layouts.meta_description(assigns) %>
+    <% meta_url = Layouts.meta_url(assigns) %>
+    <% meta_image_url = Layouts.meta_image_url(assigns) %>
+    <% meta_image_alt = Layouts.meta_image_alt(assigns) %>
+
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="robots" content="noindex,nofollow" />
     <meta name="referrer" content="same-origin" />
     <meta name="csrf-token" content={get_csrf_token()} />
+    <meta name="description" content={meta_description} />
+    <meta property="og:site_name" content="imaedge" />
+    <meta property="og:type" content={Layouts.meta_type(assigns)} />
+    <meta property="og:title" content={meta_title} />
+    <meta property="og:description" content={meta_description} />
+    <meta property="og:url" content={meta_url} />
+    <meta property="og:image" content={meta_image_url} />
+    <meta property="og:image:alt" content={meta_image_alt} />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content={meta_title} />
+    <meta name="twitter:description" content={meta_description} />
+    <meta name="twitter:image" content={meta_image_url} />
+    <link rel="canonical" href={meta_url} />
     <.live_title default="imaedge" suffix="" phx-no-format>{assigns[:page_title]}</.live_title>
 
     <link rel="icon" href={~p"/favicon.svg"} type="image/svg+xml" />

@@ -11,6 +11,22 @@ defmodule ImaedgeWeb.Layouts do
   # and other static content.
   embed_templates "layouts/*"
 
+  @default_meta_title "imaedge"
+  @default_meta_description "Collect original-quality photos together through one private link."
+  @default_meta_image_alt "imaedge logo"
+
+  def meta_title(assigns), do: assigns[:meta_title] || assigns[:page_title] || @default_meta_title
+
+  def meta_description(assigns), do: assigns[:meta_description] || @default_meta_description
+
+  def meta_type(assigns), do: assigns[:og_type] || "website"
+
+  def meta_url(assigns), do: assigns[:meta_url] || url(~p"/")
+
+  def meta_image_url(assigns), do: assigns[:meta_image_url] || url(~p"/apple-touch-icon.png")
+
+  def meta_image_alt(assigns), do: assigns[:meta_image_alt] || @default_meta_image_alt
+
   @doc """
   Renders your app layout.
 
