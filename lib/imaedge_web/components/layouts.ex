@@ -13,7 +13,7 @@ defmodule ImaedgeWeb.Layouts do
 
   @default_meta_title "imaedge"
   @default_meta_description "Collect original-quality photos together through one private link."
-  @default_meta_image_alt "imaedge logo"
+  @default_meta_image_alt "imaedge homepage preview"
 
   def meta_title(assigns), do: assigns[:meta_title] || assigns[:page_title] || @default_meta_title
 
@@ -23,7 +23,7 @@ defmodule ImaedgeWeb.Layouts do
 
   def meta_url(assigns), do: assigns[:meta_url] || url(~p"/")
 
-  def meta_image_url(assigns), do: assigns[:meta_image_url] || url(~p"/apple-touch-icon.png")
+  def meta_image_url(assigns), do: assigns[:meta_image_url] || url(~p"/images/og/home.png")
 
   def meta_image_alt(assigns), do: assigns[:meta_image_alt] || @default_meta_image_alt
 
@@ -233,7 +233,7 @@ defmodule ImaedgeWeb.Layouts do
               <span class="brand-wm">im<em>æ</em>dge</span>
             </a>
             <p class="text-[14px] text-mid leading-[1.5] max-w-[32ch] mt-3">
-              A small upload room for when several phones have to sync on bad reception.
+              A small open-source upload room for when several phones have to sync on bad reception.
             </p>
           </div>
           <div>
@@ -310,7 +310,7 @@ defmodule ImaedgeWeb.Layouts do
                   class="text-ink-2 text-[14px] transition-colors hover:text-ink"
                   href="https://github.com/klausbreyer/imaedge"
                 >
-                  imaedge on GitHub
+                  Open source on GitHub
                 </a>
               </li>
               <li>

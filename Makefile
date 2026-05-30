@@ -1,6 +1,6 @@
 ENV_FILE := /Users/kb0/versioned/imaedge/.env
 
-.PHONY: prepare test kill-port-4000 start brand brand-clean
+.PHONY: prepare test kill-port-4000 start brand brand-clean og-image
 
 prepare:
 	mix deps.get
@@ -28,6 +28,10 @@ brand:
 
 brand-clean:
 	@$(MAKE) -C priv/brand clean
+
+og-image:
+	mix assets.build
+	@OG_ENV_FILE="$(ENV_FILE)" scripts/generate_og_image.sh
 
 start:
 	@$(MAKE) kill-port-4000

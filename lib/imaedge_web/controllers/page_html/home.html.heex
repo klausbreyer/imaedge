@@ -236,10 +236,10 @@
       <ol class="grid grid-cols-2 gap-x-12 gap-y-12 max-[760px]:grid-cols-1 max-[760px]:gap-y-8 list-none p-0">
         <li class="flex flex-col gap-3">
           <h3 class="font-bold text-[clamp(20px,2vw,26px)] max-md:text-[19px] leading-[1.2] tracking-[-0.025em] text-ink">
-            Before a photo is shared, it has to be sent.
+            Apple and Google leave you stranded.
           </h3>
           <p class="text-mid text-[15px] max-md:text-[14.5px] leading-[1.55] max-w-[44ch]">
-            Every evening starts with AirDrop. Then iMessage when AirDrop refuses. Then a quick mail when iMessage chokes on the HEIC. The photo that one of us already took is the one we now have to send to the other.
+            Apple shared albums compress the images. Google Photos wants everything synced. We needed one temporary place where several phones can send originals without turning the whole phone into the source of truth.
           </p>
         </li>
 
@@ -248,13 +248,13 @@
             One of us spends the night uploading.
           </h3>
           <p class="text-mid text-[15px] max-md:text-[14.5px] leading-[1.55] max-w-[44ch]">
-            Once everything has been collected on one phone, that person uploads it into a WordPress album, picture by picture. Twelve days in, that's a job. It used to be me, every single time.
+            Once everything has been collected on one phone, that person uploads it into WordPress, picture by picture. Later the same originals become a printed photo album. Twelve days in, that's a job. It used to be me, every single time.
           </p>
         </li>
 
         <li class="flex flex-col gap-3">
           <h3 class="font-bold text-[clamp(20px,2vw,26px)] max-md:text-[19px] leading-[1.2] tracking-[-0.025em] text-ink">
-            The hotel WiFi loops through Frankfurt.
+            Your German mobile provider loops through Frankfurt.
           </h3>
           <p class="text-mid text-[15px] max-md:text-[14.5px] leading-[1.55] max-w-[44ch]">
             A 6 MB original from a Mexican beach café takes a minute over the roaming SIM that backhauls to Germany. The screen sleeps, the upload dies, the progress bar lies. Tomorrow morning we start again.
@@ -398,19 +398,35 @@
       </details>
       <details class="border-t border-black/[0.06] py-5 max-md:py-4">
         <summary class="cursor-pointer flex justify-between items-baseline gap-4 font-medium text-[clamp(18px,1.8vw,22px)] max-md:text-[16px] tracking-[-0.02em]">
+          Why not Apple or Google Photos?
+        </summary>
+        <p class="mt-3.5 text-mid max-w-[60ch] leading-[1.6] text-[15.5px] max-md:text-[14.5px]">
+          Apple shared albums compress images. Google Photos expects a sync workflow. imaedge is for the narrower job: collect original files from several phones, use them in WordPress while travelling, and keep them ready for a later photo album.
+        </p>
+      </details>
+      <details class="border-t border-black/[0.06] py-5 max-md:py-4">
+        <summary class="cursor-pointer flex justify-between items-baseline gap-4 font-medium text-[clamp(18px,1.8vw,22px)] max-md:text-[16px] tracking-[-0.02em]">
           What if I lose signal mid-upload?
         </summary>
         <p class="mt-3.5 text-mid max-w-[60ch] leading-[1.6] text-[15.5px] max-md:text-[14.5px]">
           Files are queued in your browser first. Each is chunked and uploaded as 1 MiB pieces. After a drop, the client asks the server which chunks already landed and resumes only the missing ones. Close the tab and it picks up where you left off.
         </p>
       </details>
-      <details class="border-t border-b border-black/[0.06] py-5 max-md:py-4">
+      <details class="border-t border-black/[0.06] py-5 max-md:py-4">
         <summary class="cursor-pointer flex justify-between items-baseline gap-4 font-medium text-[clamp(18px,1.8vw,22px)] max-md:text-[16px] tracking-[-0.02em]">
           How do I get the photos out?
         </summary>
         <p class="mt-3.5 text-mid max-w-[60ch] leading-[1.6] text-[15.5px] max-md:text-[14.5px]">
           Every collection has an <code class="font-brand-mono text-[13px]">/export</code>
           page, a plain HTML index that lists every image in current order with a direct link to each original. Same permission as the main link. No separate token, no ZIP.
+        </p>
+      </details>
+      <details class="border-t border-b border-black/[0.06] py-5 max-md:py-4">
+        <summary class="cursor-pointer flex justify-between items-baseline gap-4 font-medium text-[clamp(18px,1.8vw,22px)] max-md:text-[16px] tracking-[-0.02em]">
+          Can I host it myself?
+        </summary>
+        <p class="mt-3.5 text-mid max-w-[60ch] leading-[1.6] text-[15.5px] max-md:text-[14.5px]">
+          Yes. imaedge is open source, so you can run your own instance if you want.
         </p>
       </details>
     </div>

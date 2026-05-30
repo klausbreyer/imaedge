@@ -10,12 +10,17 @@ defmodule ImaedgeWeb.PageControllerTest do
     assert response =~ "Start a collection"
     assert response =~ "data-collection-name-form"
     assert response =~ "noindex"
+    assert response =~ "Apple shared albums compress"
+    assert response =~ "Google Photos wants everything synced"
+    assert response =~ "printed photo album"
+    assert response =~ "imaedge is open source"
+    assert response =~ "Open source on GitHub"
     assert response =~ ~s(<meta property="og:title" content="imaedge")
     assert response =~ ~s(<meta property="og:type" content="website")
     assert response =~ ~s(<meta property="og:url" content="#{ImaedgeWeb.Endpoint.url()}/")
 
     assert response =~
-             ~s(<meta property="og:image" content="#{ImaedgeWeb.Endpoint.url()}/apple-touch-icon.png")
+             ~s(<meta property="og:image" content="#{ImaedgeWeb.Endpoint.url()}/images/og/home.png")
 
     assert response =~ ~s(<meta name="twitter:card" content="summary")
   end
