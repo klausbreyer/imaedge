@@ -1,0 +1,318 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>collection · imaedge</title>
+  <meta name="robots" content="noindex,nofollow" />
+
+  <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="dist/apple-touch-icon.png" />
+
+  <link rel="preconnect" href="https://api.fontshare.com" crossorigin />
+  <link rel="stylesheet" href="https://api.fontshare.com/v2/css?f[]=satoshi@300,400,500,700,900&display=swap" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap" />
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            paper:     '#fafaf7',
+            tint:      '#f0eee9',
+            'tint-2':  '#e7e4dc',
+            ink:       '#0a0a0a',
+            'ink-2':   '#2c2c2c',
+            mid:       '#6e6e6e',
+            accent:    '#22d3ee',
+            'accent-d':'#0891a8',
+            warn:      '#e26a48',
+          },
+          fontFamily: {
+            sans: ['Satoshi', 'ui-sans-serif', 'system-ui', '-apple-system', 'SF Pro Display', 'sans-serif'],
+            mono: ['JetBrains Mono', 'ui-monospace', 'SF Mono', 'Menlo', 'monospace'],
+          },
+          keyframes: {
+            'pulse-cyan': {
+              '0%':   { boxShadow: '0 0 0 0 rgba(34,211,238,.5)' },
+              '70%':  { boxShadow: '0 0 0 8px rgba(34,211,238,0)' },
+              '100%': { boxShadow: '0 0 0 0 rgba(34,211,238,0)' },
+            },
+            rise: { to: { opacity: '1', transform: 'none' } },
+          },
+          animation: {
+            'pulse-cyan': 'pulse-cyan 2.6s ease-out infinite',
+            'rise':       'rise 700ms cubic-bezier(.2,.7,.2,1) forwards',
+          },
+        },
+      },
+    };
+  </script>
+
+  <style>
+    html, body { background: #fafaf7; }
+    body { -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
+
+    .wm em { color: #0891a8; font-style: normal; font-weight: 900; }
+
+    /* details summary marker + chevron toggle */
+    details.debug > summary { list-style: none; }
+    details.debug > summary::-webkit-details-marker { display: none; }
+    details.debug > summary::before { content: "›"; transition: transform 180ms; color: #6e6e6e; margin-right: 8px; }
+    details.debug[open] > summary::before { transform: rotate(90deg); }
+
+    /* hover-reveal tools on gallery tiles (desktop only) */
+    .tile .tools { opacity: 0; transition: opacity 160ms; }
+    .tile:hover .tools, .tile:focus-within .tools { opacity: 1; }
+    @media (hover: none) { .tile .tools { opacity: 1; } }
+
+    /* tile image hover scale */
+    .tile:hover .tile-img img { transform: scale(1.03); }
+
+    /* prefers-reduced-motion respects */
+    @media (prefers-reduced-motion: reduce) {
+      .reveal { opacity: 1 !important; transform: none !important; animation: none !important; }
+    }
+  </style>
+</head>
+
+<body class="font-sans text-ink text-[15.5px] leading-[1.55] tracking-[-0.01em] selection:bg-accent selection:text-ink">
+
+  <!-- ───── top nav ───── -->
+  <header class="sticky top-0 z-50 bg-paper/85 backdrop-blur-md backdrop-saturate-150 border-b border-black/[0.06]">
+    <div class="max-w-[1320px] mx-auto px-8 max-md:px-3 max-[460px]:px-2.5 flex items-center justify-between h-16 gap-6">
+      <a class="inline-flex items-center gap-2.5 font-bold text-[18px] tracking-[-0.025em] text-ink" href="/" aria-label="imaedge">
+        <svg class="w-6 h-6 block" viewBox="0 0 64 64" aria-hidden="true">
+          <path d="M 14 4 H 50 a 10 10 0 0 1 10 10 V 36 L 36 60 H 14 a 10 10 0 0 1 -10 -10 V 14 a 10 10 0 0 1 10 -10 Z" fill="#0a0a0a"/>
+          <path d="M 60 36 L 36 60 L 36 56.8 L 56.8 36 Z" fill="#22d3ee"/>
+          <text x="31" y="40" text-anchor="middle"
+                font-family="ui-sans-serif, system-ui, -apple-system, 'SF Pro Display', 'Helvetica Neue', Inter, Arial, sans-serif"
+                font-size="30" font-weight="800" fill="#fafaf7">æ</text>
+        </svg>
+        <span class="wm">im<em>æ</em>dge</span>
+      </a>
+      <div class="inline-flex items-center gap-[18px]">
+        <span class="inline-flex items-center gap-2 font-sans text-[13px] text-mid tracking-[-0.005em]">
+          <span class="w-1.5 h-1.5 rounded-full bg-accent animate-pulse-cyan" aria-hidden="true"></span>
+          <span>live</span>
+          <span class="opacity-40 max-md:hidden">·</span>
+          <span class="text-mid max-md:hidden">you are <b class="text-ink font-medium">quiet-maple</b></span>
+        </span>
+        <a class="px-3.5 py-2 bg-ink text-paper rounded-[3px] font-medium text-[13.5px] transition-colors hover:bg-[#1a1a1a] max-[480px]:hidden" href="/i/new">+ new collection</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+
+    <!-- ───── collection identity ───── -->
+    <section class="max-w-[1320px] mx-auto px-8 max-md:px-3 max-[460px]:px-2.5 py-[clamp(56px,7vw,96px)] pb-[clamp(56px,6vw,88px)] max-md:py-[32px] max-md:pb-[40px] max-[460px]:py-[28px] max-[460px]:pb-[36px]">
+      <div class="font-sans text-[13px] text-mid mb-4 tracking-[-0.005em] reveal opacity-0 translate-y-2 motion-safe:animate-rise [animation-delay:60ms] max-md:mb-3">collection · opened 7d ago</div>
+
+      <h1 class="font-sans font-bold text-[clamp(32px,5.8vw,68px)] max-md:text-[36px] max-[460px]:text-[30px] leading-none tracking-[-0.035em] max-md:tracking-[-0.03em] text-ink break-all [overflow-wrap:anywhere] reveal opacity-0 translate-y-2 motion-safe:animate-rise [animation-delay:60ms]">
+        dOKOh<span class="inline-block w-[0.18em]"></span>JNWgl<span class="inline-block w-[0.18em]"></span>rvYDp<span class="inline-block w-[0.18em]"></span>zmIk2<span class="inline-block w-[0.18em]"></span>DVYbn<span class="inline-block w-[0.18em]"></span>w8
+      </h1>
+
+      <div class="flex flex-wrap items-center gap-x-3 gap-y-6 mt-9 max-md:gap-x-2 max-md:gap-y-[18px] max-md:mt-6 reveal opacity-0 translate-y-2 motion-safe:animate-rise [animation-delay:160ms]">
+        <a class="inline-flex items-center gap-2.5 px-3.5 py-2.5 max-md:px-3.5 max-md:py-2.5 bg-white border border-ink rounded-[3px] font-medium text-[13.5px] max-md:text-[13px] text-ink transition-colors hover:bg-ink hover:text-paper" href="#" aria-label="copy collection link">
+          <svg class="w-3.5 h-3.5 stroke-current stroke-[1.8] fill-none" viewBox="0 0 24 24"><path d="M9 9h10v10H9zM5 5h10v10" /></svg>
+          <span>copy link</span>
+        </a>
+        <a class="inline-flex items-center gap-2.5 px-3.5 py-2.5 max-md:px-3.5 max-md:py-2.5 bg-white border border-ink rounded-[3px] font-medium text-[13.5px] max-md:text-[13px] text-ink transition-colors hover:bg-ink hover:text-paper" href="/i/dOKOhJNWglrvYDpzmIk2DVYbnw8/export">
+          <svg class="w-3.5 h-3.5 stroke-current stroke-[1.8] fill-none" viewBox="0 0 24 24"><path d="M5 12v6a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-6M12 3v12m-5-5 5 5 5-5"/></svg>
+          <span>export HTML</span>
+        </a>
+        <a class="inline-flex items-center gap-2.5 px-3.5 py-2.5 max-md:px-3.5 max-md:py-2.5 bg-ink text-paper border border-ink rounded-[3px] font-medium text-[13.5px] max-md:text-[13px] transition-colors hover:bg-[#1a1a1a]" href="#upload">
+          <svg class="w-3.5 h-3.5 stroke-current stroke-[1.8] fill-none" viewBox="0 0 24 24"><path d="M12 16V4m0 0-4 4m4-4 4 4M5 20h14"/></svg>
+          <span>add photos</span>
+        </a>
+
+        <div class="ml-auto max-[760px]:ml-0 max-[760px]:w-full max-[760px]:flex-wrap max-[760px]:gap-[18px] max-[760px]:pt-2.5 inline-flex gap-7 font-sans text-[13.5px] text-mid tracking-[-0.005em]">
+          <div class="inline-flex items-baseline gap-1.5"><span class="font-sans font-bold text-[22px] max-md:text-[18px] text-ink tracking-[-0.03em] mr-2 max-md:mr-1">6</span><span>images</span></div>
+          <div class="inline-flex items-baseline gap-1.5"><span class="font-sans font-bold text-[22px] max-md:text-[18px] text-ink tracking-[-0.03em] mr-2 max-md:mr-1">2</span><span>contributors</span></div>
+          <div class="inline-flex items-baseline gap-1.5"><span class="font-sans font-bold text-[22px] max-md:text-[18px] text-ink tracking-[-0.03em] mr-2 max-md:mr-1">23.4 MB</span><span>originals</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ───── work area ───── -->
+    <section class="max-w-[1320px] mx-auto px-8 max-md:px-3 max-[460px]:px-2.5">
+      <div class="grid grid-cols-[1fr_1.6fr] gap-14 pb-[clamp(40px,5vw,64px)] max-[980px]:grid-cols-1 max-[980px]:gap-12">
+
+        <!-- LEFT: uploads -->
+        <div id="upload" class="reveal opacity-0 translate-y-2 motion-safe:animate-rise [animation-delay:160ms] max-[980px]:pb-10 max-[980px]:border-b max-[980px]:border-black/[0.06]">
+          <div class="flex items-baseline justify-between gap-4 mb-[18px] max-md:mb-4">
+            <h3 class="font-bold text-[22px] max-md:text-[20px] tracking-[-0.025em] leading-tight">Uploads</h3>
+            <div class="font-sans text-[13px] text-mid tracking-[-0.005em]">0 waiting</div>
+          </div>
+
+          <label class="block relative border-[1.5px] border-dashed border-black/[0.20] rounded-[4px] p-5 max-md:p-[18px] flex flex-col gap-3.5 max-md:gap-3.5 items-start transition-[border-color,background] cursor-pointer bg-white hover:border-ink hover:bg-accent/[0.04]" tabindex="0">
+            <div class="w-10 h-10 rounded-[3px] bg-ink text-paper grid place-items-center" aria-hidden="true">
+              <svg class="w-[18px] h-[18px] stroke-current stroke-[1.7] fill-none" viewBox="0 0 24 24"><path d="M12 16V4m0 0-4 4m4-4 4 4M5 20h14" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+            <div class="font-bold text-[17px] max-md:text-[15px] tracking-[-0.02em]">
+              Drop images here, or select
+              <span class="block font-normal text-[13.5px] max-md:text-[13px] text-mid tracking-[-0.005em] mt-1">queued locally, hashed in the browser, uploaded in chunks.</span>
+            </div>
+            <div class="flex items-center justify-between gap-4 w-full pt-3.5 border-t border-black/[0.06] font-sans text-[13px] text-mid tracking-[-0.005em]">
+              <span>parallel
+                <select aria-label="parallel uploads" class="font-inherit text-ink bg-paper border border-black/[0.08] rounded-[3px] py-1 pr-1.5 pl-2 ml-1.5">
+                  <option>1</option><option>2</option><option>3</option><option>4</option>
+                </select>
+              </span>
+              <span>jpeg · png · webp</span>
+            </div>
+            <input type="file" accept="image/jpeg,image/png,image/webp" multiple class="hidden" />
+          </label>
+
+          <div class="mt-3.5" aria-label="local storage estimate">
+            <div class="flex justify-between gap-3 font-sans text-[13px] text-mid mb-2 tracking-[-0.005em]">
+              <span>local browser storage</span>
+              <span><b class="text-ink font-semibold">279.6 KB</b> / ~10.0 GB free</span>
+            </div>
+            <div class="h-1 bg-tint overflow-hidden">
+              <div class="block h-full bg-ink w-[2.8%]"></div>
+            </div>
+          </div>
+
+          <div class="mt-[18px] flex flex-col gap-2.5">
+            <div class="text-[14px] text-mid py-3 px-3.5 bg-tint rounded-[3px]">Nothing waiting locally.</div>
+          </div>
+
+          <details class="debug mt-4 font-sans text-[13px]">
+            <summary class="cursor-pointer text-mid inline-flex items-center gap-2 py-1.5 tracking-[-0.005em]">debug log</summary>
+<pre class="mt-2.5 py-3 px-3.5 bg-tint text-ink-2 rounded-[3px] font-mono text-[11.5px] leading-[1.6] max-h-[180px] overflow-auto whitespace-pre-wrap">2026-05-24T20:14:09Z  session opened  req=4f7a
+2026-05-24T20:14:09Z  channel:join    ok
+2026-05-24T20:14:12Z  storage estimate  quota=10737418240  usage=286310
+2026-05-24T20:14:12Z  poll fallback     off</pre>
+          </details>
+        </div>
+
+        <!-- RIGHT: processing + gallery -->
+        <div class="flex flex-col gap-8 max-[980px]:gap-7 min-w-0">
+
+          <!-- processing strip sits ABOVE the gallery -->
+          <div class="flex items-center gap-4 py-3.5 max-md:py-3.5 border-t border-b border-black/[0.06] font-sans text-[14px] text-mid reveal opacity-0 translate-y-2 motion-safe:animate-rise [animation-delay:260ms]">
+            <span class="font-sans font-bold text-[13px] text-ink py-[3px] px-2.5 bg-tint rounded-[3px] tracking-[-0.01em]">0</span>
+            <span><strong class="font-bold text-ink tracking-[-0.015em]">Processing.</strong> Nothing in the kiln. Ingest jobs land here while previews and EXIF are read.</span>
+            <span class="ml-auto font-sans text-[13px] text-mid tracking-[-0.005em] max-[620px]:hidden">server-side · oban</span>
+          </div>
+
+          <div class="reveal opacity-0 translate-y-2 motion-safe:animate-rise [animation-delay:260ms]">
+            <div class="flex items-baseline justify-between gap-4 mb-4 max-md:mb-3">
+              <h3 class="font-bold text-[22px] max-md:text-[20px] tracking-[-0.025em]">Gallery</h3>
+              <div class="inline-flex gap-1.5 font-mono text-[12px] text-mid">
+                <div class="inline-flex bg-tint rounded-[3px] p-0.5" role="tablist">
+                  <button class="py-1.5 px-2.5 rounded-[2px] font-mono text-[11.5px] bg-white text-ink shadow-[0_1px_2px_rgba(10,10,10,0.06)]" role="tab" aria-selected="true">taken time</button>
+                  <button class="py-1.5 px-2.5 rounded-[2px] font-mono text-[11.5px] text-mid transition-colors" role="tab">arrived</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-3 gap-3 max-[760px]:grid-cols-4 max-[760px]:gap-[2px] max-[760px]:-mx-3 max-[460px]:-mx-2.5">
+
+              <figure class="tile relative flex flex-col gap-0">
+                <div class="tile-img relative aspect-square overflow-hidden rounded-[2px] max-[760px]:rounded-none bg-tint">
+                  <img class="w-full h-full object-cover transition-transform duration-[600ms] ease-out" src="https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=720&amp;h=720&amp;fit=crop&amp;q=80&amp;auto=format" alt="" loading="lazy" />
+                  <span class="absolute left-1.5 top-1.5 max-md:left-[3px] max-md:top-[3px] py-[3px] px-[7px] max-md:py-0.5 max-md:px-[5px] max-w-[calc(100%-12px)] max-md:max-w-[calc(100%-6px)] bg-black/[0.42] backdrop-blur-md text-white font-mono text-[10.5px] max-md:text-[9.5px] rounded-[2px] tracking-[0.01em] whitespace-nowrap overflow-hidden text-ellipsis">quiet-maple</span>
+                  <div class="tools absolute left-0 right-0 bottom-0 flex gap-px" role="toolbar" aria-label="image actions">
+                    <button class="flex-1 h-[34px] max-md:h-[30px] grid place-items-center bg-black/[0.38] text-white transition-colors backdrop-blur-md hover:bg-black/[0.78]" aria-label="move earlier"><svg class="w-[15px] h-[15px] max-md:w-[13px] max-md:h-[13px] stroke-current stroke-[1.8] fill-none stroke-linecap-round stroke-linejoin-round" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+                    <button class="flex-1 h-[34px] max-md:h-[30px] grid place-items-center bg-black/[0.38] text-white transition-colors backdrop-blur-md hover:bg-black/[0.78]" aria-label="move later"><svg class="w-[15px] h-[15px] max-md:w-[13px] max-md:h-[13px] stroke-current stroke-[1.8] fill-none" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+                    <button class="flex-1 h-[34px] max-md:h-[30px] grid place-items-center bg-black/[0.38] text-white transition-colors backdrop-blur-md hover:bg-black/[0.78]" aria-label="download original"><svg class="w-[15px] h-[15px] max-md:w-[13px] max-md:h-[13px] stroke-current stroke-[1.8] fill-none" viewBox="0 0 24 24"><path d="M12 4v12m-5-5 5 5 5-5M5 20h14" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+                    <button class="flex-1 h-[34px] max-md:h-[30px] grid place-items-center bg-black/[0.38] text-white transition-colors backdrop-blur-md hover:bg-[rgba(226,106,72,0.85)]" aria-label="delete"><svg class="w-[15px] h-[15px] max-md:w-[13px] max-md:h-[13px] stroke-current stroke-[1.8] fill-none" viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+                  </div>
+                </div>
+                <div class="flex flex-col gap-0 pt-2.5 max-md:px-[5px] max-md:pt-2 max-md:pb-1 font-sans text-[13px] max-md:text-[11.5px] leading-[1.4] max-md:leading-[1.35] text-mid tracking-[-0.005em]"><span class="text-ink font-semibold">2026-07-28</span><time class="text-mid [font-feature-settings:'tnum']">09:03</time></div>
+              </figure>
+
+              <figure class="tile relative flex flex-col gap-0">
+                <div class="tile-img relative aspect-square overflow-hidden rounded-[2px] max-[760px]:rounded-none bg-tint">
+                  <img class="w-full h-full object-cover transition-transform duration-[600ms] ease-out" src="https://images.unsplash.com/photo-1535473895227-bdecb20fb157?w=720&amp;h=720&amp;fit=crop&amp;q=80&amp;auto=format" alt="" loading="lazy" />
+                  <span class="absolute left-1.5 top-1.5 max-md:left-[3px] max-md:top-[3px] py-[3px] px-[7px] max-md:py-0.5 max-md:px-[5px] max-w-[calc(100%-12px)] max-md:max-w-[calc(100%-6px)] bg-black/[0.42] backdrop-blur-md text-white font-mono text-[10.5px] max-md:text-[9.5px] rounded-[2px] tracking-[0.01em] whitespace-nowrap overflow-hidden text-ellipsis">quiet-maple</span>
+                  <div class="tools absolute left-0 right-0 bottom-0 flex gap-px" role="toolbar">
+                    <button class="flex-1 h-[34px] max-md:h-[30px] grid place-items-center bg-black/[0.38] text-white transition-colors backdrop-blur-md hover:bg-black/[0.78]" aria-label="move earlier"><svg class="w-[15px] h-[15px] max-md:w-[13px] max-md:h-[13px] stroke-current stroke-[1.8] fill-none" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+                    <button class="flex-1 h-[34px] max-md:h-[30px] grid place-items-center bg-black/[0.38] text-white transition-colors backdrop-blur-md hover:bg-black/[0.78]" aria-label="move later"><svg class="w-[15px] h-[15px] max-md:w-[13px] max-md:h-[13px] stroke-current stroke-[1.8] fill-none" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+                    <button class="flex-1 h-[34px] max-md:h-[30px] grid place-items-center bg-black/[0.38] text-white transition-colors backdrop-blur-md hover:bg-black/[0.78]" aria-label="download original"><svg class="w-[15px] h-[15px] max-md:w-[13px] max-md:h-[13px] stroke-current stroke-[1.8] fill-none" viewBox="0 0 24 24"><path d="M12 4v12m-5-5 5 5 5-5M5 20h14" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+                    <button class="flex-1 h-[34px] max-md:h-[30px] grid place-items-center bg-black/[0.38] text-white transition-colors backdrop-blur-md hover:bg-[rgba(226,106,72,0.85)]" aria-label="delete"><svg class="w-[15px] h-[15px] max-md:w-[13px] max-md:h-[13px] stroke-current stroke-[1.8] fill-none" viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+                  </div>
+                </div>
+                <div class="flex flex-col gap-0 pt-2.5 max-md:px-[5px] max-md:pt-2 max-md:pb-1 font-sans text-[13px] max-md:text-[11.5px] leading-[1.4] max-md:leading-[1.35] text-mid tracking-[-0.005em]"><span class="text-ink font-semibold">2026-07-28</span><time class="text-mid [font-feature-settings:'tnum']">09:03</time></div>
+              </figure>
+
+              <figure class="tile relative flex flex-col gap-0">
+                <div class="tile-img relative aspect-square overflow-hidden rounded-[2px] max-[760px]:rounded-none bg-tint">
+                  <img class="w-full h-full object-cover transition-transform duration-[600ms] ease-out" src="https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=720&amp;h=720&amp;fit=crop&amp;q=80&amp;auto=format" alt="" loading="lazy" />
+                  <span class="absolute left-1.5 top-1.5 max-md:left-[3px] max-md:top-[3px] py-[3px] px-[7px] max-md:py-0.5 max-md:px-[5px] max-w-[calc(100%-12px)] max-md:max-w-[calc(100%-6px)] bg-black/[0.42] backdrop-blur-md text-white font-mono text-[10.5px] max-md:text-[9.5px] rounded-[2px] tracking-[0.01em] whitespace-nowrap overflow-hidden text-ellipsis">quiet-maple</span>
+                  <div class="tools absolute left-0 right-0 bottom-0 flex gap-px" role="toolbar">
+                    <button class="flex-1 h-[34px] max-md:h-[30px] grid place-items-center bg-black/[0.38] text-white transition-colors backdrop-blur-md hover:bg-black/[0.78]" aria-label="move earlier"><svg class="w-[15px] h-[15px] max-md:w-[13px] max-md:h-[13px] stroke-current stroke-[1.8] fill-none" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+                    <button class="flex-1 h-[34px] max-md:h-[30px] grid place-items-center bg-black/[0.38] text-white transition-colors backdrop-blur-md hover:bg-black/[0.78]" aria-label="move later"><svg class="w-[15px] h-[15px] max-md:w-[13px] max-md:h-[13px] stroke-current stroke-[1.8] fill-none" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+                    <button class="flex-1 h-[34px] max-md:h-[30px] grid place-items-center bg-black/[0.38] text-white transition-colors backdrop-blur-md hover:bg-black/[0.78]" aria-label="download original"><svg class="w-[15px] h-[15px] max-md:w-[13px] max-md:h-[13px] stroke-current stroke-[1.8] fill-none" viewBox="0 0 24 24"><path d="M12 4v12m-5-5 5 5 5-5M5 20h14" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+                    <button class="flex-1 h-[34px] max-md:h-[30px] grid place-items-center bg-black/[0.38] text-white transition-colors backdrop-blur-md hover:bg-[rgba(226,106,72,0.85)]" aria-label="delete"><svg class="w-[15px] h-[15px] max-md:w-[13px] max-md:h-[13px] stroke-current stroke-[1.8] fill-none" viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+                  </div>
+                </div>
+                <div class="flex flex-col gap-0 pt-2.5 max-md:px-[5px] max-md:pt-2 max-md:pb-1 font-sans text-[13px] max-md:text-[11.5px] leading-[1.4] max-md:leading-[1.35] text-mid tracking-[-0.005em]"><span class="text-ink font-semibold">2026-07-28</span><time class="text-mid [font-feature-settings:'tnum']">10:38</time></div>
+              </figure>
+
+              <figure class="tile relative flex flex-col gap-0">
+                <div class="tile-img relative aspect-square overflow-hidden rounded-[2px] max-[760px]:rounded-none bg-tint">
+                  <img class="w-full h-full object-cover transition-transform duration-[600ms] ease-out" src="https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=720&amp;h=720&amp;fit=crop&amp;q=80&amp;auto=format" alt="" loading="lazy" />
+                  <span class="absolute left-1.5 top-1.5 max-md:left-[3px] max-md:top-[3px] py-[3px] px-[7px] max-md:py-0.5 max-md:px-[5px] max-w-[calc(100%-12px)] max-md:max-w-[calc(100%-6px)] bg-black/[0.42] backdrop-blur-md text-white font-mono text-[10.5px] max-md:text-[9.5px] rounded-[2px] tracking-[0.01em] whitespace-nowrap overflow-hidden text-ellipsis">golden-fern</span>
+                  <div class="tools absolute left-0 right-0 bottom-0 flex gap-px" role="toolbar">
+                    <button class="flex-1 h-[34px] max-md:h-[30px] grid place-items-center bg-black/[0.38] text-white transition-colors backdrop-blur-md hover:bg-black/[0.78]" aria-label="move earlier"><svg class="w-[15px] h-[15px] max-md:w-[13px] max-md:h-[13px] stroke-current stroke-[1.8] fill-none" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+                    <button class="flex-1 h-[34px] max-md:h-[30px] grid place-items-center bg-black/[0.38] text-white transition-colors backdrop-blur-md hover:bg-black/[0.78]" aria-label="move later"><svg class="w-[15px] h-[15px] max-md:w-[13px] max-md:h-[13px] stroke-current stroke-[1.8] fill-none" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+                    <button class="flex-1 h-[34px] max-md:h-[30px] grid place-items-center bg-black/[0.38] text-white transition-colors backdrop-blur-md hover:bg-black/[0.78]" aria-label="download original"><svg class="w-[15px] h-[15px] max-md:w-[13px] max-md:h-[13px] stroke-current stroke-[1.8] fill-none" viewBox="0 0 24 24"><path d="M12 4v12m-5-5 5 5 5-5M5 20h14" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+                    <button class="flex-1 h-[34px] max-md:h-[30px] grid place-items-center bg-black/[0.38] text-white transition-colors backdrop-blur-md hover:bg-[rgba(226,106,72,0.85)]" aria-label="delete"><svg class="w-[15px] h-[15px] max-md:w-[13px] max-md:h-[13px] stroke-current stroke-[1.8] fill-none" viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+                  </div>
+                </div>
+                <div class="flex flex-col gap-0 pt-2.5 max-md:px-[5px] max-md:pt-2 max-md:pb-1 font-sans text-[13px] max-md:text-[11.5px] leading-[1.4] max-md:leading-[1.35] text-mid tracking-[-0.005em]"><span class="text-ink font-semibold">2026-07-29</span><time class="text-mid [font-feature-settings:'tnum']">09:41</time></div>
+              </figure>
+
+              <figure class="tile relative flex flex-col gap-0">
+                <div class="tile-img relative aspect-square overflow-hidden rounded-[2px] max-[760px]:rounded-none bg-tint">
+                  <img class="w-full h-full object-cover transition-transform duration-[600ms] ease-out" src="https://images.unsplash.com/photo-1465146344425-f00d5f5c8f07?w=720&amp;h=720&amp;fit=crop&amp;q=80&amp;auto=format" alt="" loading="lazy" />
+                  <span class="absolute left-1.5 top-1.5 max-md:left-[3px] max-md:top-[3px] py-[3px] px-[7px] max-md:py-0.5 max-md:px-[5px] max-w-[calc(100%-12px)] max-md:max-w-[calc(100%-6px)] bg-black/[0.42] backdrop-blur-md text-white font-mono text-[10.5px] max-md:text-[9.5px] rounded-[2px] tracking-[0.01em] whitespace-nowrap overflow-hidden text-ellipsis">quiet-maple</span>
+                  <div class="tools absolute left-0 right-0 bottom-0 flex gap-px" role="toolbar">
+                    <button class="flex-1 h-[34px] max-md:h-[30px] grid place-items-center bg-black/[0.38] text-white transition-colors backdrop-blur-md hover:bg-black/[0.78]" aria-label="move earlier"><svg class="w-[15px] h-[15px] max-md:w-[13px] max-md:h-[13px] stroke-current stroke-[1.8] fill-none" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+                    <button class="flex-1 h-[34px] max-md:h-[30px] grid place-items-center bg-black/[0.38] text-white transition-colors backdrop-blur-md hover:bg-black/[0.78]" aria-label="move later"><svg class="w-[15px] h-[15px] max-md:w-[13px] max-md:h-[13px] stroke-current stroke-[1.8] fill-none" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+                    <button class="flex-1 h-[34px] max-md:h-[30px] grid place-items-center bg-black/[0.38] text-white transition-colors backdrop-blur-md hover:bg-black/[0.78]" aria-label="download original"><svg class="w-[15px] h-[15px] max-md:w-[13px] max-md:h-[13px] stroke-current stroke-[1.8] fill-none" viewBox="0 0 24 24"><path d="M12 4v12m-5-5 5 5 5-5M5 20h14" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+                    <button class="flex-1 h-[34px] max-md:h-[30px] grid place-items-center bg-black/[0.38] text-white transition-colors backdrop-blur-md hover:bg-[rgba(226,106,72,0.85)]" aria-label="delete"><svg class="w-[15px] h-[15px] max-md:w-[13px] max-md:h-[13px] stroke-current stroke-[1.8] fill-none" viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+                  </div>
+                </div>
+                <div class="flex flex-col gap-0 pt-2.5 max-md:px-[5px] max-md:pt-2 max-md:pb-1 font-sans text-[13px] max-md:text-[11.5px] leading-[1.4] max-md:leading-[1.35] text-mid tracking-[-0.005em]"><span class="text-ink font-semibold">2026-07-29</span><time class="text-mid [font-feature-settings:'tnum']">12:39</time></div>
+              </figure>
+
+              <figure class="tile relative flex flex-col gap-0">
+                <div class="tile-img relative aspect-square overflow-hidden rounded-[2px] max-[760px]:rounded-none bg-tint">
+                  <img class="w-full h-full object-cover transition-transform duration-[600ms] ease-out" src="https://images.unsplash.com/photo-1542273917363-3b1817f69a2d?w=720&amp;h=720&amp;fit=crop&amp;q=80&amp;auto=format" alt="" loading="lazy" />
+                  <span class="absolute left-1.5 top-1.5 max-md:left-[3px] max-md:top-[3px] py-[3px] px-[7px] max-md:py-0.5 max-md:px-[5px] max-w-[calc(100%-12px)] max-md:max-w-[calc(100%-6px)] bg-black/[0.42] backdrop-blur-md text-white font-mono text-[10.5px] max-md:text-[9.5px] rounded-[2px] tracking-[0.01em] whitespace-nowrap overflow-hidden text-ellipsis">golden-fern</span>
+                  <div class="tools absolute left-0 right-0 bottom-0 flex gap-px" role="toolbar">
+                    <button class="flex-1 h-[34px] max-md:h-[30px] grid place-items-center bg-black/[0.38] text-white transition-colors backdrop-blur-md hover:bg-black/[0.78]" aria-label="move earlier"><svg class="w-[15px] h-[15px] max-md:w-[13px] max-md:h-[13px] stroke-current stroke-[1.8] fill-none" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+                    <button class="flex-1 h-[34px] max-md:h-[30px] grid place-items-center bg-black/[0.38] text-white transition-colors backdrop-blur-md hover:bg-black/[0.78]" aria-label="move later"><svg class="w-[15px] h-[15px] max-md:w-[13px] max-md:h-[13px] stroke-current stroke-[1.8] fill-none" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+                    <button class="flex-1 h-[34px] max-md:h-[30px] grid place-items-center bg-black/[0.38] text-white transition-colors backdrop-blur-md hover:bg-black/[0.78]" aria-label="download original"><svg class="w-[15px] h-[15px] max-md:w-[13px] max-md:h-[13px] stroke-current stroke-[1.8] fill-none" viewBox="0 0 24 24"><path d="M12 4v12m-5-5 5 5 5-5M5 20h14" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+                    <button class="flex-1 h-[34px] max-md:h-[30px] grid place-items-center bg-black/[0.38] text-white transition-colors backdrop-blur-md hover:bg-[rgba(226,106,72,0.85)]" aria-label="delete"><svg class="w-[15px] h-[15px] max-md:w-[13px] max-md:h-[13px] stroke-current stroke-[1.8] fill-none" viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+                  </div>
+                </div>
+                <div class="flex flex-col gap-0 pt-2.5 max-md:px-[5px] max-md:pt-2 max-md:pb-1 font-sans text-[13px] max-md:text-[11.5px] leading-[1.4] max-md:leading-[1.35] text-mid tracking-[-0.005em]"><span class="text-ink font-semibold">2026-07-29</span><time class="text-mid [font-feature-settings:'tnum']">15:37</time></div>
+              </figure>
+
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ───── footer ───── -->
+    <footer class="max-w-[1320px] mx-auto px-8 max-md:px-3 max-[460px]:px-2.5 pt-8 pb-10 max-md:pt-[26px] max-md:pb-[30px] border-t border-black/[0.06] mt-[clamp(32px,4vw,56px)] max-md:mt-6 flex justify-between gap-[18px] max-[620px]:flex-col max-[620px]:gap-1.5 font-sans text-[13px] text-mid tracking-[-0.005em]">
+      <span>collection · dOKOh…w8</span>
+      <span>link is the only key</span>
+      <span>© 2026 imaedge</span>
+    </footer>
+
+  </main>
+</body>
+</html>

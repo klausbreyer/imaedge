@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>imaedge · brand</title>
+
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            ink:       '#0b1020',
+            'ink-2':   '#131a33',
+            paper:     '#f6f5f1',
+            'paper-2': '#eceae2',
+            line:      '#d9d6cc',
+            accent:    '#22d3ee',
+            'accent-2':'#67e8f9',
+            text:      '#1b2238',
+            muted:     '#6b7390',
+          },
+          fontFamily: {
+            sans: ['ui-sans-serif', 'system-ui', '-apple-system', 'Segoe UI', 'Inter', 'Roboto', 'sans-serif'],
+            mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'monospace'],
+          },
+        },
+      },
+    };
+  </script>
+
+  <style>
+    html, body { background: #f6f5f1; }
+    body { -webkit-font-smoothing: antialiased; text-rendering: geometricPrecision; }
+  </style>
+</head>
+<body class="font-sans text-text">
+
+  <!-- =========================================================
+       REUSABLE SVG SYMBOLS
+       ========================================================= -->
+  <svg width="0" height="0" class="absolute" aria-hidden="true">
+
+    <symbol id="mark" viewBox="0 0 64 64">
+      <path d="M 14 4 H 50 a 10 10 0 0 1 10 10 V 36 L 36 60 H 14 a 10 10 0 0 1 -10 -10 V 14 a 10 10 0 0 1 10 -10 Z" fill="#0b1020"/>
+      <path d="M 60 36 L 36 60 L 36 56.8 L 56.8 36 Z" fill="#22d3ee"/>
+      <text x="31" y="40" text-anchor="middle"
+            font-family="ui-sans-serif, system-ui, -apple-system, 'SF Pro Display', 'Helvetica Neue', Inter, Arial, sans-serif"
+            font-size="30" font-weight="800" fill="#f6f5f1"
+            style="font-feature-settings:'kern' 1;">æ</text>
+    </symbol>
+
+    <symbol id="mark-mono" viewBox="0 0 64 64">
+      <path d="M 14 4 H 50 a 10 10 0 0 1 10 10 V 36 L 36 60 H 14 a 10 10 0 0 1 -10 -10 V 14 a 10 10 0 0 1 10 -10 Z" fill="currentColor"/>
+      <text x="31" y="40" text-anchor="middle"
+            font-family="ui-sans-serif, system-ui, -apple-system, 'SF Pro Display', 'Helvetica Neue', Inter, Arial, sans-serif"
+            font-size="30" font-weight="800" fill="#ffffff"
+            style="font-feature-settings:'kern' 1;">æ</text>
+    </symbol>
+
+    <symbol id="wordmark" viewBox="0 0 260 80">
+      <text x="0" y="60"
+            font-family="ui-sans-serif, system-ui, -apple-system, 'SF Pro Display', 'Helvetica Neue', Inter, Arial, sans-serif"
+            font-size="64" font-weight="800"
+            style="font-feature-settings:'kern' 1; letter-spacing:-0.01em;">
+        <tspan fill="currentColor">im</tspan><tspan fill="#22d3ee">æ</tspan><tspan fill="currentColor">dge</tspan>
+      </text>
+    </symbol>
+
+    <symbol id="lockup" viewBox="0 0 360 96">
+      <g transform="translate(4,12)"><use href="#mark" width="72" height="72"/></g>
+      <g transform="translate(92,8)"><use href="#wordmark" width="260" height="80"/></g>
+    </symbol>
+
+  </svg>
+
+  <main class="max-w-[1080px] mx-auto px-7 pt-14 pb-24">
+
+    <header class="flex items-baseline justify-between gap-6 mb-12 border-b border-line pb-5">
+      <h1 class="text-[14px] font-semibold tracking-[0.18em] uppercase text-muted m-0">imaedge · brand</h1>
+      <div class="text-[12px] tracking-[0.16em] uppercase text-muted">v0.1 · 2026</div>
+    </header>
+
+    <!-- HERO -->
+    <section class="mb-[72px]">
+      <div class="grid grid-cols-[200px_1fr] gap-10 items-center py-14 px-10 bg-ink rounded-3xl text-paper max-[760px]:grid-cols-1">
+        <div class="w-[200px] h-[200px] grid place-items-center">
+          <svg viewBox="0 0 64 64" width="200" height="200" role="img" aria-label="imaedge mark"><use href="#mark"/></svg>
+        </div>
+        <div>
+          <svg class="w-full h-auto max-h-[140px]" viewBox="0 0 260 80" role="img" aria-label="imaedge"><use href="#wordmark" style="color:#f6f5f1"/></svg>
+          <div class="flex gap-2 flex-wrap mt-3.5">
+            <span class="text-[11px] tracking-[0.14em] uppercase py-1.5 px-2.5 rounded-full bg-[#131a33] text-[#9aa3c7] border border-[#1c2545]">image</span>
+            <span class="text-[11px] tracking-[0.14em] uppercase py-1.5 px-2.5 rounded-full bg-[#131a33] text-[#9aa3c7] border border-[#1c2545]">+ edge</span>
+            <span class="text-[11px] tracking-[0.14em] uppercase py-1.5 px-2.5 rounded-full bg-[#131a33] text-[#9aa3c7] border border-[#1c2545]">= imaedge</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FAVICON -->
+    <section class="mb-[72px]">
+      <h2 class="text-[11px] font-bold tracking-[0.22em] uppercase text-muted m-0 mb-4">Favicon · pixel sizes</h2>
+      <div class="flex items-center gap-7 flex-wrap py-[22px] px-6 bg-paper-2 rounded-[14px] border border-line">
+        <div class="flex items-center gap-2.5">
+          <svg viewBox="0 0 64 64" width="16" height="16"><use href="#mark"/></svg>
+          <span class="text-[11px] tracking-[0.14em] uppercase text-muted">16</span>
+        </div>
+        <div class="flex items-center gap-2.5">
+          <svg viewBox="0 0 64 64" width="24" height="24"><use href="#mark"/></svg>
+          <span class="text-[11px] tracking-[0.14em] uppercase text-muted">24</span>
+        </div>
+        <div class="flex items-center gap-2.5">
+          <svg viewBox="0 0 64 64" width="32" height="32"><use href="#mark"/></svg>
+          <span class="text-[11px] tracking-[0.14em] uppercase text-muted">32</span>
+        </div>
+        <div class="flex items-center gap-2.5">
+          <svg viewBox="0 0 64 64" width="48" height="48"><use href="#mark"/></svg>
+          <span class="text-[11px] tracking-[0.14em] uppercase text-muted">48</span>
+        </div>
+        <div class="flex items-center gap-2.5">
+          <svg viewBox="0 0 64 64" width="64" height="64"><use href="#mark"/></svg>
+          <span class="text-[11px] tracking-[0.14em] uppercase text-muted">64</span>
+        </div>
+        <div class="flex items-center gap-2.5">
+          <svg viewBox="0 0 64 64" width="128" height="128"><use href="#mark"/></svg>
+          <span class="text-[11px] tracking-[0.14em] uppercase text-muted">128</span>
+        </div>
+
+        <div class="flex-1"></div>
+
+        <div class="inline-flex items-center gap-2 py-2 pr-3 pl-2 bg-white border border-line rounded-[10px_10px_4px_4px] text-[13px] text-text shadow-[0_1px_0_var(--line)]" title="So sieht es im Browser-Tab aus" style="--line:#d9d6cc">
+          <span class="w-4 h-4 grid place-items-center">
+            <svg viewBox="0 0 64 64" class="w-4 h-4"><use href="#mark"/></svg>
+          </span>
+          imaedge · /i/abc…
+        </div>
+      </div>
+    </section>
+
+    <!-- MARK VARIATIONS -->
+    <section class="mb-[72px]">
+      <h2 class="text-[11px] font-bold tracking-[0.22em] uppercase text-muted m-0 mb-4">Mark · Hintergründe</h2>
+      <div class="grid grid-cols-4 gap-4 max-[760px]:grid-cols-2">
+        <div class="bg-paper-2 border border-line rounded-[14px] p-[18px] flex flex-col items-center justify-center gap-3 min-h-[140px]">
+          <svg viewBox="0 0 64 64" width="80" height="80"><use href="#mark"/></svg>
+          <div class="text-[11px] tracking-[0.16em] uppercase text-muted">paper</div>
+        </div>
+        <div class="bg-ink border border-[#1c2545] text-paper rounded-[14px] p-[18px] flex flex-col items-center justify-center gap-3 min-h-[140px]">
+          <svg viewBox="0 0 64 64" width="80" height="80"><use href="#mark"/></svg>
+          <div class="text-[11px] tracking-[0.16em] uppercase text-[#8c97c2]">ink</div>
+        </div>
+        <div class="bg-accent text-ink border-transparent rounded-[14px] p-[18px] flex flex-col items-center justify-center gap-3 min-h-[140px]">
+          <svg viewBox="0 0 64 64" width="80" height="80" style="color:#0b1020"><use href="#mark-mono"/></svg>
+          <div class="text-[11px] tracking-[0.16em] uppercase text-[#0b1020] opacity-70">accent · mono</div>
+        </div>
+        <div class="bg-white border border-line rounded-[14px] p-[18px] flex flex-col items-center justify-center gap-3 min-h-[140px]">
+          <svg viewBox="0 0 64 64" width="80" height="80" style="color:#0b1020"><use href="#mark-mono"/></svg>
+          <div class="text-[11px] tracking-[0.16em] uppercase text-muted">mono · ink</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- LOCKUP -->
+    <section class="mb-[72px]">
+      <h2 class="text-[11px] font-bold tracking-[0.22em] uppercase text-muted m-0 mb-4">Lockup · horizontal</h2>
+      <div class="grid grid-cols-2 gap-4 max-[760px]:grid-cols-1">
+        <div class="bg-paper-2 border border-line rounded-[14px] flex flex-col items-center justify-center gap-3 min-h-[160px] p-7">
+          <svg viewBox="0 0 360 96" width="100%" height="80"><use href="#lockup" style="color:#0b1020"/></svg>
+        </div>
+        <div class="bg-ink border border-[#1c2545] text-paper rounded-[14px] flex flex-col items-center justify-center gap-3 min-h-[160px] p-7">
+          <svg viewBox="0 0 360 96" width="100%" height="80"><use href="#lockup" style="color:#f6f5f1"/></svg>
+        </div>
+      </div>
+    </section>
+
+    <!-- COLORS -->
+    <section class="mb-[72px]">
+      <h2 class="text-[11px] font-bold tracking-[0.22em] uppercase text-muted m-0 mb-4">Farben</h2>
+      <div class="grid grid-cols-4 gap-3 max-[760px]:grid-cols-2">
+        <div class="rounded-[12px] p-[18px] min-h-[110px] flex flex-col justify-between bg-ink text-paper border border-ink text-[12px]">
+          <div class="font-semibold tracking-[0.04em]">ink</div>
+          <div class="font-mono opacity-80">#0B1020</div>
+        </div>
+        <div class="rounded-[12px] p-[18px] min-h-[110px] flex flex-col justify-between bg-accent text-ink border border-accent text-[12px]">
+          <div class="font-semibold tracking-[0.04em]">edge</div>
+          <div class="font-mono opacity-80">#22D3EE</div>
+        </div>
+        <div class="rounded-[12px] p-[18px] min-h-[110px] flex flex-col justify-between bg-paper text-text border border-line text-[12px]">
+          <div class="font-semibold tracking-[0.04em]">paper</div>
+          <div class="font-mono opacity-80">#F6F5F1</div>
+        </div>
+        <div class="rounded-[12px] p-[18px] min-h-[110px] flex flex-col justify-between bg-[#131a33] text-[#9aa3c7] border border-[#1c2545] text-[12px]">
+          <div class="font-semibold tracking-[0.04em]">ink-2</div>
+          <div class="font-mono opacity-80">#131A33</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- USAGE -->
+    <section class="mb-[72px]">
+      <h2 class="text-[11px] font-bold tracking-[0.22em] uppercase text-muted m-0 mb-4">Einbau</h2>
+      <pre class="bg-[#0e1430] text-[#d4ddff] rounded-[12px] py-[18px] px-5 overflow-auto text-[12.5px] leading-[1.55] font-mono m-0">&lt;!-- Favicon --&gt;
+&lt;link rel="icon" type="image/svg+xml" href="/favicon.svg" /&gt;
+
+&lt;!-- Inline mark, skaliert verlustfrei, kein Font nötig --&gt;
+&lt;svg viewBox="0 0 64 64" width="32" height="32"&gt;
+  &lt;use href="/brand.svg#mark"/&gt;
+&lt;/svg&gt;
+
+&lt;!-- Wordmark in dunkler Headerleiste --&gt;
+&lt;svg viewBox="0 0 260 80" style="color:#f6f5f1; height:32px"&gt;
+  &lt;use href="/brand.svg#wordmark"/&gt;
+&lt;/svg&gt;</pre>
+    </section>
+
+    <footer class="mt-10 text-muted text-[12px] tracking-[0.06em]">
+      imaedge · Bildkanten ohne Verluste
+    </footer>
+
+  </main>
+</body>
+</html>

@@ -1,0 +1,19 @@
+# build output
+dist/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# editor / IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# logs / tmp
+*.log
+tmp/

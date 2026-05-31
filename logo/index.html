@@ -1,0 +1,387 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>imaedge — collect originals through one quiet link</title>
+  <meta name="description" content="A small private upload room for travel days, bad networks, and the quiet relief of knowing which files actually arrived." />
+
+  <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="dist/apple-touch-icon.png" />
+
+  <link rel="preconnect" href="https://api.fontshare.com" crossorigin />
+  <link rel="stylesheet" href="https://api.fontshare.com/v2/css?f[]=satoshi@300,400,500,700,900,400i&display=swap" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap" />
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            paper:     '#fafaf7',
+            tint:      '#f0eee9',
+            ink:       '#0a0a0a',
+            'ink-2':   '#2c2c2c',
+            mid:       '#6e6e6e',
+            accent:    '#22d3ee',
+            'accent-d':'#0891a8',
+            warn:      '#e26a48',
+          },
+          fontFamily: {
+            sans: ['Satoshi', 'ui-sans-serif', 'system-ui', '-apple-system', 'SF Pro Display', 'sans-serif'],
+            mono: ['JetBrains Mono', 'ui-monospace', 'SF Mono', 'Menlo', 'monospace'],
+          },
+          keyframes: {
+            'pulse-cyan': {
+              '0%':   { boxShadow: '0 0 0 0 rgba(34,211,238,.5)' },
+              '70%':  { boxShadow: '0 0 0 8px rgba(34,211,238,0)' },
+              '100%': { boxShadow: '0 0 0 0 rgba(34,211,238,0)' },
+            },
+            rise:  { to: { opacity: '1', transform: 'none' } },
+            blink: { '50%': { opacity: '0.35' } },
+          },
+          animation: {
+            'pulse-cyan': 'pulse-cyan 2.6s ease-out infinite',
+            'rise':       'rise 700ms cubic-bezier(.2,.7,.2,1) forwards',
+            'blink':      'blink 1.6s ease-in-out infinite',
+          },
+          transitionTimingFunction: {
+            'out-expo': 'cubic-bezier(.2,.7,.2,1)',
+          },
+        },
+      },
+    };
+  </script>
+
+  <style>
+    /* leftover styles that don't translate cleanly into Tailwind utilities */
+    html, body { background: #fafaf7; }
+    body { -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
+
+    /* the brand wordmark uses the æ ligature in accent-d via a nested <em> */
+    .wm em { color: #0891a8; font-style: normal; font-weight: 900; }
+
+    /* details summary marker reset + +/− toggle */
+    .faq summary { list-style: none; }
+    .faq summary::-webkit-details-marker { display: none; }
+    .faq summary::after { content: "+"; color: #6e6e6e; font-weight: 400; transition: transform 200ms; }
+    .faq details[open] summary::after { content: "−"; }
+
+    /* prefers-reduced-motion: respect by disabling rise animation */
+    @media (prefers-reduced-motion: reduce) {
+      .reveal { opacity: 1 !important; transform: none !important; animation: none !important; }
+    }
+  </style>
+</head>
+
+<body class="font-sans text-ink text-[16px] leading-[1.55] tracking-[-0.01em] overflow-x-hidden selection:bg-accent selection:text-ink">
+
+  <!-- ───── top nav ───── -->
+  <header class="sticky top-0 z-50 bg-paper/85 backdrop-blur-md backdrop-saturate-150 border-b border-black/[0.06]">
+    <div class="max-w-[1320px] mx-auto px-8 max-md:px-4 max-[460px]:px-3 flex items-center justify-between h-16 gap-6">
+      <a class="inline-flex items-center gap-2.5 font-bold text-[18px] tracking-[-0.025em] text-ink" href="/" aria-label="imaedge">
+        <svg class="w-6 h-6 block" viewBox="0 0 64 64" aria-hidden="true">
+          <path d="M 14 4 H 50 a 10 10 0 0 1 10 10 V 36 L 36 60 H 14 a 10 10 0 0 1 -10 -10 V 14 a 10 10 0 0 1 10 -10 Z" fill="#0a0a0a"/>
+          <path d="M 60 36 L 36 60 L 36 56.8 L 56.8 36 Z" fill="#22d3ee"/>
+          <text x="31" y="40" text-anchor="middle"
+                font-family="ui-sans-serif, system-ui, -apple-system, 'SF Pro Display', 'Helvetica Neue', Inter, Arial, sans-serif"
+                font-size="30" font-weight="800" fill="#fafaf7">æ</text>
+        </svg>
+        <span class="wm">im<em>æ</em>dge</span>
+      </a>
+      <nav class="inline-flex items-center gap-7 font-sans text-[14px] text-mid tracking-[-0.005em]">
+        <a class="transition-colors hover:text-ink max-md:hidden" href="#how">how it works</a>
+        <a class="transition-colors hover:text-ink max-md:hidden" href="#faq">questions</a>
+        <a class="px-3.5 py-2 bg-ink text-paper rounded-[3px] font-medium text-[13.5px] tracking-[-0.005em] transition-colors hover:bg-[#1a1a1a]" href="/i/new">start a collection</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+
+    <!-- ───── hero ───── -->
+    <section class="py-[clamp(56px,9vw,120px)] pb-[clamp(48px,6vw,80px)] relative">
+      <div class="max-w-[1320px] mx-auto px-8 max-md:px-4 max-[460px]:px-3 grid grid-cols-[1.05fr_0.95fr] gap-[clamp(32px,5vw,80px)] items-center max-[980px]:grid-cols-1 max-[980px]:gap-12">
+        <div>
+          <h1 class="font-sans font-black text-[clamp(56px,9vw,132px)] leading-[0.92] tracking-[-0.045em] text-ink reveal opacity-0 translate-y-2.5 motion-safe:animate-rise [animation-delay:60ms]">
+            Images.
+            <span class="block text-accent-d italic font-black">Together.</span>
+            <span class="block text-mid font-medium tracking-[-0.035em]">At the Edge.</span>
+          </h1>
+          <p class="text-[clamp(17px,1.6vw,21px)] leading-[1.45] text-ink-2 max-w-[36ch] mt-7 tracking-[-0.01em] reveal opacity-0 translate-y-2.5 motion-safe:animate-rise [animation-delay:180ms]">
+            You're on a trip together. You both take photos. At night they sit on two phones and nobody wants to be the upload donkey. imaedge is one link both phones can dump their originals into.
+          </p>
+          <div class="mt-9 flex items-center gap-5 flex-wrap reveal opacity-0 translate-y-2.5 motion-safe:animate-rise [animation-delay:260ms]">
+            <a class="group inline-flex items-center gap-2.5 px-6 py-4 bg-ink text-paper rounded-[4px] font-medium text-[16px] tracking-[-0.01em] transition-colors hover:bg-[#1a1a1a] cursor-pointer" href="/i/new">
+              <span>Start a collection</span>
+              <svg class="w-[18px] h-[18px] stroke-current stroke-[1.8] fill-none transition-transform group-hover:translate-x-[3px]" viewBox="0 0 24 24"><path d="M5 12h14M13 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </a>
+            <a class="group inline-flex items-center gap-2 py-4 text-ink font-medium text-[15px] tracking-[-0.005em]" href="#how">
+              See how it works
+              <span class="w-4 h-px bg-ink transition-[width] duration-200 ease-out-expo group-hover:w-8"></span>
+            </a>
+          </div>
+        </div>
+
+        <div class="hero-visual relative w-full max-w-[560px] max-[980px]:mx-auto flex flex-col gap-5 reveal opacity-0 translate-y-2.5 motion-safe:animate-rise [animation-delay:180ms]">
+
+          <!-- Shared link bar — the unifying element -->
+          <div class="link-bar relative bg-white border border-black/[0.10] rounded-[10px] py-2.5 px-3 flex items-center gap-3 shadow-[0_1px_2px_rgba(10,10,10,0.04),0_12px_24px_-12px_rgba(10,10,10,0.10)]" aria-hidden="true">
+            <span class="inline-flex items-center gap-1">
+              <span class="w-2 h-2 rounded-full bg-[#fb7474]"></span>
+              <span class="w-2 h-2 rounded-full bg-[#f7c057]"></span>
+              <span class="w-2 h-2 rounded-full bg-[#5cc174]"></span>
+            </span>
+            <span class="flex-1 font-mono text-[12.5px] text-ink-2 truncate">
+              <span class="text-mid">imaedge.app/i/</span><span class="text-ink">dOKOhJNWglrvYDpzmIk2DVYbnw8</span>
+            </span>
+            <span class="inline-flex items-center gap-1 px-2 py-0.5 bg-tint rounded-[3px] font-sans text-[11px] text-mid">
+              <svg class="w-3 h-3 stroke-current stroke-2 fill-none" viewBox="0 0 24 24"><path d="M9 9h10v10H9zM5 5h10v10"/></svg>
+              copy
+            </span>
+          </div>
+
+          <!-- "shared between" row: pills match the pins on the cards below -->
+          <div class="flex items-center gap-2 text-[12.5px] font-mono text-mid flex-wrap" aria-hidden="true">
+            <span>shared between</span>
+            <span class="inline-flex items-center px-2 py-1 bg-ink/[0.78] rounded-[3px] font-mono text-[10.5px] text-white tracking-[0.01em]">quiet-maple</span>
+            <span class="opacity-40">+</span>
+            <span class="inline-flex items-center px-2 py-1 bg-accent/[0.92] rounded-[3px] font-mono text-[10.5px] text-ink tracking-[0.01em]">golden-fern</span>
+          </div>
+
+          <!-- Photo stack — visually shows: photos from both phones, in one place -->
+          <div class="card-stack relative aspect-[4/5] w-full max-[980px]:aspect-[5/4]" aria-hidden="true">
+            <div class="card card-1 absolute top-0 left-0 w-[58%] aspect-[4/5] rounded-[14px] overflow-hidden bg-tint z-[3] transition-transform duration-[600ms] ease-out-expo shadow-[0_1px_2px_rgba(10,10,10,0.04),0_20px_40px_-16px_rgba(10,10,10,0.22),0_40px_80px_-24px_rgba(10,10,10,0.18)]" style="transform: rotate(-3.5deg);">
+              <img class="w-full h-full object-cover" src="https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=900&amp;q=85&amp;auto=format&amp;fit=crop" alt="" loading="eager" />
+              <span class="absolute left-2.5 top-2.5 inline-flex items-center gap-1.5 px-2 py-1 bg-ink/[0.78] backdrop-blur-md rounded-[3px] font-mono text-[10.5px] text-white tracking-[0.01em]">
+                quiet-maple
+              </span>
+            </div>
+            <div class="card card-2 absolute top-[14%] right-0 w-[52%] aspect-[4/5] rounded-[14px] overflow-hidden bg-tint z-[2] transition-transform duration-[600ms] ease-out-expo shadow-[0_1px_2px_rgba(10,10,10,0.04),0_20px_40px_-16px_rgba(10,10,10,0.22),0_40px_80px_-24px_rgba(10,10,10,0.18)]" style="transform: rotate(3.5deg);">
+              <img class="w-full h-full object-cover" src="https://images.unsplash.com/photo-1535473895227-bdecb20fb157?w=900&amp;q=85&amp;auto=format&amp;fit=crop" alt="" loading="eager" />
+              <span class="absolute left-2.5 top-2.5 inline-flex items-center gap-1.5 px-2 py-1 bg-accent/[0.92] backdrop-blur-md rounded-[3px] font-mono text-[10.5px] text-ink tracking-[0.01em]">
+                golden-fern
+              </span>
+            </div>
+            <div class="card card-3 absolute bottom-0 left-[14%] w-[54%] aspect-[5/4] rounded-[14px] overflow-hidden bg-tint z-[4] transition-transform duration-[600ms] ease-out-expo shadow-[0_1px_2px_rgba(10,10,10,0.04),0_20px_40px_-16px_rgba(10,10,10,0.22),0_40px_80px_-24px_rgba(10,10,10,0.18)]" style="transform: rotate(-1.5deg);">
+              <img class="w-full h-full object-cover" src="https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=900&amp;q=85&amp;auto=format&amp;fit=crop" alt="" loading="eager" />
+              <span class="absolute left-2.5 top-2.5 inline-flex items-center gap-1.5 px-2 py-1 bg-ink/[0.78] backdrop-blur-md rounded-[3px] font-mono text-[10.5px] text-white tracking-[0.01em]">
+                quiet-maple
+              </span>
+            </div>
+            <div class="card card-4 absolute bottom-[8%] right-[4%] w-[32%] aspect-square rounded-[14px] overflow-hidden bg-tint z-[1] transition-transform duration-[600ms] ease-out-expo shadow-[0_1px_2px_rgba(10,10,10,0.04),0_20px_40px_-16px_rgba(10,10,10,0.22),0_40px_80px_-24px_rgba(10,10,10,0.18)]" style="transform: rotate(5.5deg);">
+              <img class="w-full h-full object-cover" src="https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=600&amp;q=85&amp;auto=format&amp;fit=crop" alt="" loading="eager" />
+              <span class="absolute left-2 top-2 inline-flex items-center gap-1 px-1.5 py-0.5 bg-accent/[0.92] backdrop-blur-md rounded-[3px] font-mono text-[9px] text-ink tracking-[0.01em]">
+                golden-fern
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="max-w-[1320px] mx-auto px-8 max-md:px-4 max-[460px]:px-3">
+        <div class="mt-[clamp(40px,6vw,80px)] py-6 border-t border-b border-black/[0.06] flex items-center gap-[clamp(28px,5vw,64px)] flex-wrap font-sans text-[14px] text-mid tracking-[-0.005em] reveal opacity-0 translate-y-2.5 motion-safe:animate-rise [animation-delay:380ms]">
+          <div class="inline-flex items-baseline gap-1"><span class="font-sans font-bold text-[26px] text-ink tracking-[-0.03em] mr-2.5">100%</span><span>originals · no re-encoding</span></div>
+          <div class="inline-flex items-baseline gap-1"><span class="font-sans font-bold text-[26px] text-ink tracking-[-0.03em] mr-2.5">1 MiB</span><span>chunked, resumable uploads</span></div>
+          <div class="inline-flex items-baseline gap-1"><span class="font-sans font-bold text-[26px] text-ink tracking-[-0.03em] mr-2.5">0</span><span>accounts to manage</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ───── the trip in four acts (honest pain) ───── -->
+    <section class="py-[clamp(64px,9vw,128px)]">
+      <div class="max-w-[1320px] mx-auto px-8 max-md:px-4 max-[460px]:px-3">
+
+        <div class="flex items-baseline justify-between gap-6 mb-[clamp(36px,5vw,64px)] max-[760px]:flex-col">
+          <h2 class="font-sans font-bold text-[clamp(32px,4.2vw,56px)] leading-[1.02] tracking-[-0.035em] max-w-[18ch]">The trip in four acts.</h2>
+          <p class="text-[16px] text-mid max-w-[36ch] leading-[1.5]">If you've ever tried to keep a shared photo album on the road, you know all four of these. We did. That's why imaedge exists.</p>
+        </div>
+
+        <ol class="grid grid-cols-2 gap-x-12 gap-y-12 max-[760px]:grid-cols-1 max-[760px]:gap-y-10 list-none p-0">
+
+          <li class="flex flex-col gap-3">
+            <h3 class="font-bold text-[clamp(20px,2vw,26px)] leading-[1.2] tracking-[-0.025em] text-ink">Before a photo is shared, it has to be sent.</h3>
+            <p class="text-mid text-[15px] leading-[1.55] max-w-[44ch]">Every evening starts with AirDrop. Then iMessage when AirDrop refuses. Then a quick mail when iMessage chokes on the HEIC. The photo that one of us already took is the one we now have to send to the other.</p>
+          </li>
+
+          <li class="flex flex-col gap-3">
+            <h3 class="font-bold text-[clamp(20px,2vw,26px)] leading-[1.2] tracking-[-0.025em] text-ink">One of us spends the night uploading.</h3>
+            <p class="text-mid text-[15px] leading-[1.55] max-w-[44ch]">Once everything has been collected on one phone, that person uploads it into a WordPress album, picture by picture. Twelve days in, that's a job. It used to be me, every single time.</p>
+          </li>
+
+          <li class="flex flex-col gap-3">
+            <h3 class="font-bold text-[clamp(20px,2vw,26px)] leading-[1.2] tracking-[-0.025em] text-ink">The hotel WiFi loops through Frankfurt.</h3>
+            <p class="text-mid text-[15px] leading-[1.55] max-w-[44ch]">A 6 MB original from a Mexican beach café takes a minute over the roaming SIM that backhauls to Germany. The screen sleeps, the upload dies, the progress bar lies. Tomorrow morning we start again.</p>
+          </li>
+
+          <li class="flex flex-col gap-3">
+            <h3 class="font-bold text-[clamp(20px,2vw,26px)] leading-[1.2] tracking-[-0.025em] text-ink">A screenshot from this morning lands at the end.</h3>
+            <p class="text-mid text-[15px] leading-[1.55] max-w-[44ch]">Screenshots carry the timestamp of when they were saved, not when the thing happened. So the snapshot of the bus ticket sits a week after the bus ride. Manual reordering, every single time.</p>
+          </li>
+
+        </ol>
+
+      </div>
+    </section>
+
+    <!-- ───── feature bento ───── -->
+    <section id="how" class="py-[clamp(72px,10vw,140px)] pb-[clamp(48px,6vw,96px)]">
+      <div class="max-w-[1320px] mx-auto px-8 max-md:px-4 max-[460px]:px-3">
+
+        <div class="flex items-baseline justify-between gap-6 mb-[clamp(36px,5vw,64px)] max-[760px]:flex-col">
+          <h2 class="font-sans font-bold text-[clamp(32px,4.2vw,56px)] leading-[1.02] tracking-[-0.035em] max-w-[18ch]">Four small certainties.</h2>
+          <p class="text-[16px] text-mid max-w-[32ch] leading-[1.5]">A list of accounts, sign-in flows and ZIP exports we deliberately do not have. What is left is the part that matters.</p>
+        </div>
+
+        <div class="grid grid-cols-6 gap-4 max-[980px]:grid-cols-4 max-[620px]:grid-cols-1">
+
+          <!-- big: link as identity -->
+          <div class="col-span-3 min-h-[320px] bg-white border border-black/[0.06] rounded-[18px] p-7 flex flex-col gap-3.5 relative overflow-hidden transition-[border-color,transform] duration-200 hover:border-black/[0.08] hover:-translate-y-0.5 max-[980px]:col-span-4 max-[620px]:col-span-1 max-[620px]:min-h-0">
+            <h3 class="font-bold text-[clamp(28px,3vw,40px)] leading-[1.05] tracking-[-0.025em] text-ink">One URL, many phones.</h3>
+            <p class="text-mid text-[14.5px] leading-[1.55] max-w-[42ch]">Share the link with anyone in earshot. Whoever has it can add, sort, retry, export. No accounts, no admin roles, no permission dance.</p>
+            <div class="mt-auto pt-4">
+              <div class="font-mono text-[14px] bg-tint rounded-[3px] py-3 px-3.5 inline-block max-w-full overflow-hidden whitespace-nowrap"><span class="text-mid">imaedge.app/i/</span><span class="text-ink tracking-[-0.005em]">dOKOhJNWglrvYDpzmIk2DVYbnw8</span></div>
+            </div>
+          </div>
+
+          <!-- small: chunks -->
+          <div class="col-span-3 min-h-[320px] bg-white border border-black/[0.06] rounded-[18px] p-7 flex flex-col gap-3.5 relative overflow-hidden transition-[border-color,transform] duration-200 hover:border-black/[0.08] hover:-translate-y-0.5 max-[980px]:col-span-4 max-[620px]:col-span-1 max-[620px]:min-h-0">
+            <h3 class="font-bold text-[clamp(28px,3vw,40px)] leading-[1.05] tracking-[-0.025em] text-ink">Resumable on bad WiFi.</h3>
+            <p class="text-mid text-[14.5px] leading-[1.55] max-w-[42ch]">Files queue locally, hash in the browser, upload in 1 MiB chunks and resume after every drop. Close the tab whenever.</p>
+            <div class="mt-auto pt-4 grid grid-cols-[repeat(16,1fr)] gap-[3px]" aria-hidden="true">
+              <span class="aspect-square bg-ink rounded-[2px] opacity-90"></span>
+              <span class="aspect-square bg-ink rounded-[2px] opacity-90"></span>
+              <span class="aspect-square bg-ink rounded-[2px] opacity-90"></span>
+              <span class="aspect-square bg-ink rounded-[2px] opacity-90"></span>
+              <span class="aspect-square bg-ink rounded-[2px] opacity-90"></span>
+              <span class="aspect-square bg-ink rounded-[2px] opacity-90"></span>
+              <span class="aspect-square bg-ink rounded-[2px] opacity-90"></span>
+              <span class="aspect-square bg-ink rounded-[2px] opacity-90"></span>
+              <span class="aspect-square bg-ink rounded-[2px] opacity-90"></span>
+              <span class="aspect-square bg-ink rounded-[2px] opacity-90"></span>
+              <span class="aspect-square bg-ink rounded-[2px] opacity-90"></span>
+              <span class="aspect-square bg-ink rounded-[2px] opacity-90"></span>
+              <span class="aspect-square bg-ink rounded-[2px] opacity-90"></span>
+              <span class="aspect-square bg-accent rounded-[2px] animate-blink"></span>
+              <span class="aspect-square bg-tint rounded-[2px]"></span>
+              <span class="aspect-square bg-tint rounded-[2px]"></span>
+            </div>
+          </div>
+
+          <!-- file row -->
+          <div class="col-span-4 min-h-[220px] bg-white border border-black/[0.06] rounded-[18px] p-7 flex flex-col gap-3.5 relative overflow-hidden transition-[border-color,transform] duration-200 hover:border-black/[0.08] hover:-translate-y-0.5 max-[980px]:col-span-4 max-[620px]:col-span-1 max-[620px]:min-h-0">
+            <h3 class="font-bold text-[24px] leading-[1.15] tracking-[-0.025em] text-ink">Original bytes, untouched.</h3>
+            <p class="text-mid text-[14.5px] leading-[1.55] max-w-[42ch]">No re-encoding, no EXIF stripping, no surprise compression. The byte stream from your phone is the byte stream in storage.</p>
+            <div class="mt-auto pt-4">
+              <div class="flex items-center justify-between gap-3 py-2.5 px-3.5 bg-tint rounded-[3px] font-mono text-[12.5px] text-ink-2">
+                <span>IMG_2418.HEIC</span>
+                <span class="text-mid">sha256 · 4f7a…0bd9</span>
+                <span class="text-accent-d font-medium">✓ stored intact</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- contributors -->
+          <div class="col-span-2 min-h-[220px] bg-white border border-black/[0.06] rounded-[18px] p-7 flex flex-col gap-3.5 relative overflow-hidden transition-[border-color,transform] duration-200 hover:border-black/[0.08] hover:-translate-y-0.5 max-[980px]:col-span-4 max-[620px]:col-span-1 max-[620px]:min-h-0">
+            <h3 class="font-bold text-[24px] leading-[1.15] tracking-[-0.025em] text-ink">Names, not names.</h3>
+            <p class="text-mid text-[14.5px] leading-[1.55] max-w-[42ch]">Every device gets a quiet, human handle.</p>
+            <div class="mt-auto pt-4 flex flex-wrap gap-1.5" aria-hidden="true">
+              <span class="py-1 px-2.5 bg-ink text-paper rounded-[3px] font-mono text-[11.5px]">quiet-maple</span>
+              <span class="py-1 px-2.5 bg-tint text-ink-2 rounded-[3px] font-mono text-[11.5px]">golden-fern</span>
+              <span class="py-1 px-2.5 bg-tint text-ink-2 rounded-[3px] font-mono text-[11.5px]">silent-tide</span>
+              <span class="py-1 px-2.5 bg-tint text-ink-2 rounded-[3px] font-mono text-[11.5px]">slow-harbor</span>
+              <span class="py-1 px-2.5 bg-tint text-ink-2 rounded-[3px] font-mono text-[11.5px]">low-pine</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ───── faq ───── -->
+    <section id="faq" class="faq py-[clamp(48px,6vw,96px)]">
+      <div class="max-w-[1320px] mx-auto px-8 max-md:px-4 max-[460px]:px-3">
+        <h2 class="font-bold text-[clamp(32px,4.2vw,52px)] tracking-[-0.035em] leading-[1.02] mb-8 max-w-[18ch]">Quiet questions.</h2>
+
+        <details class="border-t border-black/[0.06] py-5">
+          <summary class="cursor-pointer flex justify-between items-baseline gap-4 font-medium text-[clamp(18px,1.8vw,22px)] tracking-[-0.02em]">Who can see a collection?</summary>
+          <p class="mt-3.5 text-mid max-w-[60ch] leading-[1.6] text-[15.5px]">Anyone with the link. There are no accounts and no admin roles. The link is the only key. Collection pages are <code class="font-mono text-[13px]">noindex</code>, never linked from anywhere, and never appear in any list.</p>
+        </details>
+        <details class="border-t border-black/[0.06] py-5">
+          <summary class="cursor-pointer flex justify-between items-baseline gap-4 font-medium text-[clamp(18px,1.8vw,22px)] tracking-[-0.02em]">What happens to my original files?</summary>
+          <p class="mt-3.5 text-mid max-w-[60ch] leading-[1.6] text-[15.5px]">They are stored unchanged. No re-encoding, no EXIF rewrite, no compression. We hash the file in the browser before upload, and again on the server after assembly. If the hashes disagree, nothing is finalised.</p>
+        </details>
+        <details class="border-t border-black/[0.06] py-5">
+          <summary class="cursor-pointer flex justify-between items-baseline gap-4 font-medium text-[clamp(18px,1.8vw,22px)] tracking-[-0.02em]">What if I lose signal mid-upload?</summary>
+          <p class="mt-3.5 text-mid max-w-[60ch] leading-[1.6] text-[15.5px]">Files are queued in your browser first. Each is chunked and uploaded as 1 MiB pieces. After a drop, the client asks the server which chunks already landed and resumes only the missing ones. Close the tab and it picks up where you left off.</p>
+        </details>
+        <details class="border-t border-b border-black/[0.06] py-5">
+          <summary class="cursor-pointer flex justify-between items-baseline gap-4 font-medium text-[clamp(18px,1.8vw,22px)] tracking-[-0.02em]">How do I get the photos out?</summary>
+          <p class="mt-3.5 text-mid max-w-[60ch] leading-[1.6] text-[15.5px]">Every collection has an <code class="font-mono text-[13px]">/export</code> page — a plain HTML index that lists every image in current order with a direct link to each original. Same permission as the main link. No separate token, no ZIP.</p>
+        </details>
+      </div>
+    </section>
+
+    <!-- ───── cta band ───── -->
+    <section class="max-w-[1320px] mx-auto px-8 max-md:px-4 max-[460px]:px-3">
+      <div class="my-[clamp(48px,6vw,80px)] py-[clamp(48px,7vw,96px)] px-[clamp(28px,5vw,64px)] bg-ink text-paper rounded-[24px] grid grid-cols-[1fr_auto] gap-8 items-center relative overflow-hidden max-[760px]:grid-cols-1 before:content-[''] before:absolute before:right-[-10%] before:top-[-50%] before:w-[60%] before:aspect-square before:[background:radial-gradient(circle,rgba(34,211,238,0.18),transparent_60%)] before:pointer-events-none">
+        <h2 class="font-bold text-[clamp(32px,5vw,64px)] leading-none tracking-[-0.04em] max-w-[18ch]">One link. The <em class="not-italic text-accent">originals</em>. Nothing else.</h2>
+        <a class="group inline-flex items-center gap-2.5 px-7 py-[18px] bg-paper text-ink rounded-[4px] font-medium text-[16px] transition-colors hover:bg-white" href="/i/new">
+          <span>Start a collection</span>
+          <svg class="w-[18px] h-[18px] stroke-current stroke-[1.8] fill-none transition-transform group-hover:translate-x-[3px]" viewBox="0 0 24 24"><path d="M5 12h14M13 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </a>
+      </div>
+    </section>
+
+    <!-- ───── footer ───── -->
+    <footer class="max-w-[1320px] mx-auto px-8 max-md:px-4 max-[460px]:px-3 pt-12 pb-9 border-t border-black/[0.06] grid grid-cols-[1.4fr_1fr_1fr_1fr] gap-9 max-[760px]:grid-cols-2 max-[760px]:gap-7">
+      <div class="col">
+        <a class="inline-flex items-center gap-2.5 font-bold text-[18px] tracking-[-0.025em] text-ink" href="/" aria-label="imaedge">
+          <svg class="w-6 h-6 block" viewBox="0 0 64 64" aria-hidden="true">
+            <path d="M 14 4 H 50 a 10 10 0 0 1 10 10 V 36 L 36 60 H 14 a 10 10 0 0 1 -10 -10 V 14 a 10 10 0 0 1 10 -10 Z" fill="#0a0a0a"/>
+            <path d="M 60 36 L 36 60 L 36 56.8 L 56.8 36 Z" fill="#22d3ee"/>
+            <text x="31" y="40" text-anchor="middle"
+                  font-family="ui-sans-serif, system-ui, -apple-system, 'SF Pro Display', 'Helvetica Neue', Inter, Arial, sans-serif"
+                  font-size="30" font-weight="800" fill="#fafaf7">æ</text>
+          </svg>
+          <span class="wm">im<em>æ</em>dge</span>
+        </a>
+        <p class="text-[14px] text-mid leading-[1.5] max-w-[32ch] mt-3">A small upload room for when several phones have to sync on bad reception.</p>
+      </div>
+      <div>
+        <h4 class="font-sans text-[13px] font-bold text-ink mb-3.5 tracking-[-0.01em]">product</h4>
+        <ul class="list-none flex flex-col gap-2">
+          <li><a class="text-ink-2 text-[14px] transition-colors hover:text-ink" href="/i/new">start a collection</a></li>
+          <li><a class="text-ink-2 text-[14px] transition-colors hover:text-ink" href="#how">how it works</a></li>
+          <li><a class="text-ink-2 text-[14px] transition-colors hover:text-ink" href="#faq">questions</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4 class="font-sans text-[13px] font-bold text-ink mb-3.5 tracking-[-0.01em]">policy</h4>
+        <ul class="list-none flex flex-col gap-2">
+          <li><a class="text-ink-2 text-[14px] transition-colors hover:text-ink" href="#">privacy</a></li>
+          <li><a class="text-ink-2 text-[14px] transition-colors hover:text-ink" href="#">terms</a></li>
+          <li><a class="text-ink-2 text-[14px] transition-colors hover:text-ink" href="https://v01.io/imprint">imprint</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4 class="font-sans text-[13px] font-bold text-ink mb-3.5 tracking-[-0.01em]">contact</h4>
+        <ul class="list-none flex flex-col gap-2">
+          <li><a class="text-ink-2 text-[14px] transition-colors hover:text-ink" href="mailto:kb@v01.io">kb@v01.io</a></li>
+          <li><a class="text-ink-2 text-[14px] transition-colors hover:text-ink" href="https://github.com/klausbreyer/imaedge_logo">changelog</a></li>
+        </ul>
+      </div>
+
+      <div class="col-span-full mt-9 pt-5 border-t border-black/[0.06] flex justify-between gap-4 flex-wrap font-sans text-[13px] text-mid tracking-[-0.005em]">
+        <span>© 2026 imaedge</span>
+        <span>built quietly</span>
+      </div>
+    </footer>
+
+  </main>
+
+</body>
+</html>
