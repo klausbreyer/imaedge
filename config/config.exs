@@ -26,6 +26,10 @@ config :imaedge, :object_storage,
   root: "priv/static/objects",
   public_path: "/objects"
 
+config :imaedge, :admin_auth,
+  username: "admin",
+  password: "admin"
+
 # Configure the endpoint
 config :imaedge, ImaedgeWeb.Endpoint,
   url: [host: "localhost"],

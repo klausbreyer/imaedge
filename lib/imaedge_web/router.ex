@@ -14,6 +14,10 @@ defmodule ImaedgeWeb.Router do
     plug :accepts, ["json"]
   end
 
+  pipeline :admin do
+    plug :admin_basic_auth
+  end
+
   scope "/", ImaedgeWeb do
     pipe_through :browser
 
@@ -28,6 +32,12 @@ defmodule ImaedgeWeb.Router do
     get "/i/:collection_id/uploads/:upload_id", UploadController, :show
     put "/i/:collection_id/uploads/:upload_id/chunks/:index", UploadController, :chunk
     post "/i/:collection_id/uploads/:upload_id/finalize", UploadController, :finalize
+  end
+
+  scope "/", ImaedgeWeb do
+    pipe_through [:browser, :admin]
+
+    get "/admin", AdminController, :show
   end
 
   # Other scopes may use custom stacks.
@@ -49,5 +59,14 @@ defmodule ImaedgeWeb.Router do
 
       live_dashboard "/dashboard", metrics: ImaedgeWeb.Telemetry
     end
+  end
+
+  defp admin_basic_auth(conn, _opts) do
+    config = Application.fetch_env!(:imaedge, :admin_auth)
+
+    Plug.BasicAuth.basic_auth(conn,
+      username: Keyword.fetch!(config, :username),
+      password: Keyword.fetch!(config, :password)
+    )
   end
 end

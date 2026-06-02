@@ -26,6 +26,32 @@ config :imaedge, ImaedgeWeb.Endpoint,
 if config_env() == :prod do
   config :imaedge, Imaedge.Repo, Imaedge.Repo.RuntimeConfig.build()
 
+  admin_username =
+    case System.get_env("ADMIN_USERNAME") do
+      value when is_binary(value) and value != "" ->
+        value
+
+      _ ->
+        raise """
+        environment variable ADMIN_USERNAME is missing.
+        """
+    end
+
+  admin_password =
+    case System.get_env("ADMIN_PASSWORD") do
+      value when is_binary(value) and value != "" ->
+        value
+
+      _ ->
+        raise """
+        environment variable ADMIN_PASSWORD is missing.
+        """
+    end
+
+  config :imaedge, :admin_auth,
+    username: admin_username,
+    password: admin_password
+
   # The secret key base is used to sign/encrypt cookies and other secrets.
   # A default value is used in config/dev.exs and config/test.exs but you
   # want to use a different value for prod and you most likely don't want
