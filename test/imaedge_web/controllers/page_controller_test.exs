@@ -77,8 +77,13 @@ defmodule ImaedgeWeb.PageControllerTest do
     assert response =~ "edited"
     assert response =~ ~s(href="/i/#{collection.public_id}")
     assert response =~ "workspace"
-    assert response =~ "print"
+    assert response =~ "data-share-link"
+    assert response =~ ~s(data-share-url=)
+    assert response =~ ~s(/i/#{collection.public_id}/export)
+    assert response =~ "share link"
     refute response =~ "back to workspace"
+    refute response =~ "javascript:window.print()"
+    refute response =~ "print"
     refute response =~ "print / save PDF"
     refute response =~ "imaedge.app/i/#{collection.public_id}"
   end
