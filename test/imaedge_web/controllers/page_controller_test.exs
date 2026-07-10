@@ -7,7 +7,7 @@ defmodule ImaedgeWeb.PageControllerTest do
     conn = get(conn, ~p"/")
     response = html_response(conn, 200)
     assert response =~ "Images."
-    assert response =~ "Start a collection"
+    assert response =~ "start a collection"
     assert response =~ "data-collection-name-form"
     assert response =~ "noindex"
     assert response =~ "Apple shared albums compress"

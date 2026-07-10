@@ -55,7 +55,7 @@
           <span class="font-brand-sans font-bold text-[22px] max-md:text-[14px] text-ink tracking-[-0.03em] mr-1">
             {length(@images)}
           </span>
-          <span>images</span>
+          <span>{if length(@images) == 1, do: "image", else: "images"}</span>
         </div>
       </div>
     </div>
@@ -63,7 +63,7 @@
 
   <section class="max-w-[1320px] mx-auto px-8 max-md:px-3 max-[460px]:px-2.5 pb-[clamp(40px,5vw,64px)]">
     <div class="flex items-center gap-4 py-3.5 border-t border-b border-black/[0.06] font-brand-sans text-[14px] text-mid mb-8 brand-reveal opacity-0 translate-y-2 motion-safe:animate-rise">
-      <span>Tap an image to download the unmodified full-resolution source.</span>
+      <span>Each image links to the unmodified full-resolution original.</span>
     </div>
 
     <ol class="flex flex-col divide-y divide-black/[0.06] border-t border-b border-black/[0.06] brand-reveal opacity-0 translate-y-2 motion-safe:animate-rise">

@@ -97,7 +97,7 @@ defmodule ImaedgeWeb.CollectionLive do
               phx-hook="ShareCollectionLink"
               data-collection-url={url(~p"/i/#{@collection.public_id}")}
               data-collection-title={Collection.display_name(@collection)}
-              class="hidden items-center justify-center h-9 max-md:h-8 gap-2 px-3.5 max-md:px-2.5 bg-ink border border-ink rounded-[3px] font-medium text-[13.5px] max-md:text-[12px] leading-none tracking-[-0.005em] text-paper transition-colors hover:bg-white hover:text-ink box-border cursor-pointer"
+              class="inline-flex items-center justify-center h-9 max-md:h-8 gap-2 px-3.5 max-md:px-2.5 bg-ink border border-ink rounded-[3px] font-medium text-[13.5px] max-md:text-[12px] leading-none tracking-[-0.005em] text-paper transition-colors hover:bg-white hover:text-ink box-border cursor-pointer"
               aria-label="share collection link"
             >
               <svg
@@ -134,9 +134,9 @@ defmodule ImaedgeWeb.CollectionLive do
               <span class="font-brand-sans font-bold text-[22px] max-md:text-[14px] text-ink tracking-[-0.03em] mr-1">
                 {@image_count}
               </span>
-              <span>images</span>
+              <span>{if @image_count == 1, do: "image", else: "images"}</span>
             </div>
-            <div class="inline-flex items-baseline gap-1">
+            <div :if={@upload_count > 0} class="inline-flex items-baseline gap-1">
               <span class="font-brand-sans font-bold text-[22px] max-md:text-[14px] text-ink tracking-[-0.03em] mr-1">
                 {@upload_count}
               </span>
@@ -196,7 +196,7 @@ defmodule ImaedgeWeb.CollectionLive do
               </div>
               <div class="flex items-center justify-between gap-4 px-5 max-md:px-3 pb-4 max-md:pb-2 -mt-1 font-brand-sans text-[13px] max-md:text-[11px] text-mid tracking-[-0.005em]">
                 <span class="inline-flex items-center gap-1.5">
-                  <span>parallel</span>
+                  <span>parallel uploads</span>
                   <select
                     id="upload-concurrency"
                     aria-label="parallel uploads"
@@ -434,6 +434,13 @@ defmodule ImaedgeWeb.CollectionLive do
                   </figcaption>
                 </figure>
               </div>
+
+              <p
+                :if={@image_count == 0}
+                class="py-6 px-4 bg-tint rounded-[3px] font-brand-sans text-[14px] max-md:text-[13px] text-mid"
+              >
+                No images yet. Photos appear here as soon as they finish processing.
+              </p>
             </div>
           </div>
         </div>

@@ -55,9 +55,6 @@ function installCollectionNamePrompts() {
 
 const ShareCollectionLink = {
   mounted() {
-    this.el.classList.remove("hidden")
-    this.el.classList.add("inline-flex")
-
     this.el.addEventListener("click", async () => {
       const url = this.el.dataset.collectionUrl || window.location.href
       const title = this.el.dataset.collectionTitle || "imaedge collection"

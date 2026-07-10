@@ -127,7 +127,7 @@ defmodule ImaedgeWeb.Layouts do
       </main>
 
       <footer class="max-w-[1320px] mx-auto px-8 max-md:px-3 max-[460px]:px-2.5 pt-8 pb-10 max-md:pt-3 max-md:pb-4 border-t border-black/[0.06] mt-[clamp(32px,4vw,56px)] max-md:mt-3 flex items-center justify-between gap-3 font-brand-sans text-[12px] max-md:text-[11px] text-mid tracking-[-0.005em]">
-        <span>Images. Together. At The Edge.</span>
+        <span>Images. Together. At the Edge.</span>
         <a href={~p"/"} class="hover:text-ink transition-colors">© 2026 imaedge</a>
       </footer>
 
@@ -148,7 +148,7 @@ defmodule ImaedgeWeb.Layouts do
   def marketing_shell(assigns) do
     ~H"""
     <div class="font-brand-sans text-ink text-[16px] leading-[1.55] tracking-[-0.01em] bg-paper antialiased overflow-x-hidden selection:bg-brand-accent selection:text-ink">
-      <div class="bg-ink text-paper border-b border-black/[0.06] text-[13px] max-md:text-[12px] font-semibold tracking-[-0.005em] uppercase">
+      <div class="bg-ink text-paper border-b border-black/[0.06] text-[13px] max-md:text-[12px] font-medium tracking-[-0.005em]">
         <div class="max-w-[1320px] mx-auto px-8 max-md:px-4 max-[460px]:px-3 py-2 max-md:py-1.5 flex items-center justify-center gap-2 flex-wrap text-center">
           <span>free, but without any guarantee.</span>
         </div>
@@ -248,18 +248,18 @@ defmodule ImaedgeWeb.Layouts do
                     type="submit"
                     class="text-ink-2 text-[14px] transition-colors hover:text-ink cursor-pointer bg-transparent p-0 border-0 font-inherit"
                   >
-                    Start a Collection
+                    start a collection
                   </button>
                 </form>
               </li>
               <li>
                 <a class="text-ink-2 text-[14px] transition-colors hover:text-ink" href={~p"/#how"}>
-                  How It Works
+                  how it works
                 </a>
               </li>
               <li>
                 <a class="text-ink-2 text-[14px] transition-colors hover:text-ink" href={~p"/#faq"}>
-                  Questions
+                  questions
                 </a>
               </li>
             </ul>
@@ -271,7 +271,7 @@ defmodule ImaedgeWeb.Layouts do
             <ul class="list-none flex flex-col gap-2">
               <li>
                 <a class="text-ink-2 text-[14px] transition-colors hover:text-ink" href={~p"/about"}>
-                  About
+                  about
                 </a>
               </li>
               <li>
@@ -279,7 +279,7 @@ defmodule ImaedgeWeb.Layouts do
                   class="text-ink-2 text-[14px] transition-colors hover:text-ink"
                   href={~p"/privacy"}
                 >
-                  Privacy
+                  privacy
                 </a>
               </li>
               <li>
@@ -325,7 +325,7 @@ defmodule ImaedgeWeb.Layouts do
           </div>
 
           <div class="col-span-full mt-9 max-md:mt-6 pt-5 max-md:pt-4 border-t border-black/[0.06] flex items-center justify-between gap-4 flex-wrap font-brand-sans text-[13px] max-md:text-[12px] text-mid tracking-[-0.005em]">
-            <span>Images. Together. At The Edge.</span>
+            <span>Images. Together. At the Edge.</span>
             <a href={~p"/"} class="hover:text-ink transition-colors">© 2026 imaedge</a>
           </div>
         </footer>
