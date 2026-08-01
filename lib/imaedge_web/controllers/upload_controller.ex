@@ -98,6 +98,21 @@ defmodule ImaedgeWeb.UploadController do
     end
   end
 
+  def cancel(conn, %{"collection_id" => collection_id, "upload_id" => upload_id}) do
+    collection = Media.get_collection_by_public_id!(collection_id)
+
+    case Media.cancel_upload(collection, upload_id) do
+      {:ok, session} ->
+        :ok = Uploads.delete_temp(session)
+        json(conn, %{status: "cancelled"})
+
+      {:error, :already_accepted} ->
+        conn
+        |> put_status(:conflict)
+        |> json(%{error: "already_accepted"})
+    end
+  end
+
   defp upload_json(collection, session) do
     duplicate = duplicate_image(collection, session)
 

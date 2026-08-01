@@ -51,6 +51,40 @@ defmodule Imaedge.MediaTest do
            ]
   end
 
+  test "reorder_image moves directly to a dropped position" do
+    {:ok, collection} = Media.create_collection()
+    base = ~U[2026-05-24 12:00:00.000000Z]
+
+    first = insert_image!(collection, "first", base, 1)
+    second = insert_image!(collection, "second", DateTime.add(base, 10, :second), 2)
+    third = insert_image!(collection, "third", DateTime.add(base, 20, :second), 3)
+
+    assert :ok =
+             Media.reorder_image(collection, third.public_id, [
+               third.public_id,
+               first.public_id,
+               second.public_id
+             ])
+
+    reordered = Media.list_gallery_images(collection)
+
+    assert Enum.map(reordered, & &1.public_id) == [
+             third.public_id,
+             first.public_id,
+             second.public_id
+           ]
+
+    assert Enum.at(reordered, 1).effective_taken_at == first.effective_taken_at
+    assert Enum.at(reordered, 2).effective_taken_at == second.effective_taken_at
+  end
+
+  test "reorder_image rejects incomplete client order" do
+    {:ok, collection} = Media.create_collection()
+    image = insert_image!(collection, "first", ~U[2026-05-24 12:00:00.000000Z], 1)
+
+    assert {:error, :invalid_order} = Media.reorder_image(collection, image.public_id, [])
+  end
+
   test "update_effective_time accepts datetime-local input" do
     {:ok, collection} = Media.create_collection()
     image = insert_image!(collection, "first", ~U[2026-05-24 12:00:00.000000Z], 1)

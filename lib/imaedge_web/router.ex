@@ -30,6 +30,7 @@ defmodule ImaedgeWeb.Router do
 
     post "/i/:collection_id/uploads", UploadController, :create
     get "/i/:collection_id/uploads/:upload_id", UploadController, :show
+    delete "/i/:collection_id/uploads/:upload_id", UploadController, :cancel
     put "/i/:collection_id/uploads/:upload_id/chunks/:index", UploadController, :chunk
     post "/i/:collection_id/uploads/:upload_id/finalize", UploadController, :finalize
   end

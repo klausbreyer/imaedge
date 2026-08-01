@@ -57,25 +57,13 @@ const ShareCollectionLink = {
   mounted() {
     this.el.addEventListener("click", async () => {
       const url = this.el.dataset.collectionUrl || window.location.href
-      const title = this.el.dataset.collectionTitle || "imaedge collection"
       const label = this.el.querySelector("span")
       const original = label ? label.textContent : null
 
-      try {
-        if (!navigator.share) throw new Error("browser_share_unavailable")
-
-        await navigator.share({
-          title,
-          text: "Add original photos to this imaedge collection.",
-          url,
-        })
-      } catch (err) {
-        if (err && err.name === "AbortError") return
-        await copyText(url)
-        if (label) {
-          label.textContent = "link copied"
-          setTimeout(() => { if (original !== null) label.textContent = original }, 1400)
-        }
+      await copyText(url)
+      if (label) {
+        label.textContent = "link copied"
+        setTimeout(() => { if (original !== null) label.textContent = original }, 1400)
       }
     })
   },

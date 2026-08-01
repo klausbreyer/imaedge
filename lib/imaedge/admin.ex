@@ -79,7 +79,7 @@ defmodule Imaedge.Admin do
 
   defp active_upload_bytes do
     UploadSession
-    |> where([upload], upload.status not in ["done", "duplicate"])
+    |> where([upload], upload.status not in ["done", "duplicate", "cancelled"])
     |> select([upload], coalesce(sum(upload.byte_size), 0))
     |> Repo.one()
   end
@@ -437,7 +437,7 @@ defmodule Imaedge.Admin do
 
   defp active_upload_count(status_rows) do
     status_rows
-    |> Map.drop(["done", "duplicate"])
+    |> Map.drop(["done", "duplicate", "cancelled"])
     |> sum_counts()
   end
 

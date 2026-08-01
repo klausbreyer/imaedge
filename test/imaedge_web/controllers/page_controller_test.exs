@@ -35,7 +35,7 @@ defmodule ImaedgeWeb.PageControllerTest do
     assert collection.name == "Norway Roadtrip"
   end
 
-  test "collection page includes a browser share CTA", %{conn: conn} do
+  test "collection page copies its single collection link", %{conn: conn} do
     {:ok, collection} = Media.create_collection(%{name: "Beach Phone Dump"})
 
     {:ok, _view, html} = live(conn, ~p"/i/#{collection.public_id}")
@@ -44,12 +44,11 @@ defmodule ImaedgeWeb.PageControllerTest do
     assert html =~ ~s(phx-hook="ShareCollectionLink")
     assert html =~ ~s(data-collection-url=)
     assert html =~ ~s(/i/#{collection.public_id})
-    assert html =~ ~s(href="/i/#{collection.public_id}/export")
+    refute html =~ ~s(href="/i/#{collection.public_id}/export")
     refute html =~ ~s(href="/i/#{collection.public_id}")
-    refute html =~ "copy collection link"
+    assert html =~ "copy collection link"
     refute html =~ "export HTML"
-    assert html =~ "export"
-    assert html =~ "share"
+    assert html =~ "copy link"
   end
 
   test "collection page includes share metadata", %{conn: conn} do

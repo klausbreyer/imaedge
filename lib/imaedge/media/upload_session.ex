@@ -2,7 +2,7 @@ defmodule Imaedge.Media.UploadSession do
   use Ecto.Schema
   import Ecto.Changeset
 
-  @statuses ~w(created uploading finalizing processing failed done duplicate)
+  @statuses ~w(created uploading finalizing processing failed done duplicate cancelled)
 
   schema "upload_sessions" do
     field :public_id, :string

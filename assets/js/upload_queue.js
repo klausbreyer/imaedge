@@ -1,6 +1,9 @@
 const DB_NAME = "imaedge-upload-queue"
 const DB_VERSION = 1
 const STORE = "files"
+const CONTROL_REQUEST_TIMEOUT_MS = 25_000
+const FINALIZE_REQUEST_TIMEOUT_MS = 120_000
+const CHUNK_REQUEST_TIMEOUT_MS = 60_000
 
 function openDb() {
   return new Promise((resolve, reject) => {
@@ -204,6 +207,7 @@ export const UploadQueue = {
     this.collectionId = this.el.dataset.collectionId
     this.csrf = document.querySelector("meta[name='csrf-token']").content
     this.input = this.el.querySelector("#image-picker")
+    this.dropzone = this.input.closest("label")
     this.queueEl = this.el.querySelector("#client-queue")
     this.storageEl = document.querySelector("#storage-estimate")
     this.concurrencyEl = this.el.querySelector("#upload-concurrency")
@@ -214,11 +218,41 @@ export const UploadQueue = {
     this.active = 0
     this.poll = null
     this.renderScheduled = false
+    this.dragDepth = 0
+    this.abortControllers = new Map()
+    this.cancelledIds = new Set()
 
     this.input.addEventListener("click", () => this.log("image picker tapped"))
     this.input.addEventListener("change", event => {
       const files = [...event.target.files]
       this.log(`image picker selected ${files.length} file(s)`)
+      this.addFiles(files)
+    })
+    this.queueEl.addEventListener("click", event => {
+      const button = event.target.closest("[data-cancel-upload]")
+      if (button) this.cancelUpload(button.dataset.cancelUpload)
+      const retryButton = event.target.closest("[data-retry-upload]")
+      if (retryButton) this.retryUpload(retryButton.dataset.retryUpload)
+    })
+    this.dropzone.addEventListener("dragenter", event => {
+      event.preventDefault()
+      this.dragDepth += 1
+      this.setDropzoneActive(true)
+    })
+    this.dropzone.addEventListener("dragover", event => {
+      event.preventDefault()
+      event.dataTransfer.dropEffect = "copy"
+    })
+    this.dropzone.addEventListener("dragleave", () => {
+      this.dragDepth = Math.max(0, this.dragDepth - 1)
+      if (this.dragDepth === 0) this.setDropzoneActive(false)
+    })
+    this.dropzone.addEventListener("drop", event => {
+      event.preventDefault()
+      this.dragDepth = 0
+      this.setDropzoneActive(false)
+      const files = [...event.dataTransfer.files]
+      this.log(`dropzone received ${files.length} file(s)`)
       this.addFiles(files)
     })
     this.concurrencyEl.addEventListener("change", () => this.pump())
@@ -239,6 +273,12 @@ export const UploadQueue = {
 
   destroyed() {
     if (this.poll) window.clearInterval(this.poll)
+    this.abortControllers.forEach(controller => controller.abort())
+  },
+
+  setDropzoneActive(active) {
+    this.dropzone.classList.toggle("border-ink", active)
+    this.dropzone.classList.toggle("bg-brand-accent/[0.08]", active)
   },
 
   async addFiles(files) {
@@ -270,6 +310,8 @@ export const UploadQueue = {
 
       try {
         const hash = await sha256(file)
+        if (this.cancelledIds.has(id)) continue
+
         if (this.records.some(item => item.id !== id && item.sha256 === hash)) {
           record.status = "duplicate local"
           record.error = "Same file is already in this local queue"
@@ -300,7 +342,7 @@ export const UploadQueue = {
     const limit = Number(this.concurrencyEl.value || 1)
 
     while (this.active < limit) {
-      const record = this.records.find(item => ["queued", "failed upload"].includes(item.status))
+      const record = this.records.find(item => item.status === "queued")
       if (!record) return
 
       this.active += 1
@@ -312,12 +354,15 @@ export const UploadQueue = {
   },
 
   async upload(record) {
+    const controller = new AbortController()
+    this.abortControllers.set(record.id, controller)
+
     try {
       record.status = "preparing"
       this.render()
 
       if (!record.sessionId) {
-        const session = await this.createSession(record)
+        const session = await this.createSession(record, controller.signal)
         if (session.duplicate) {
           record.status = "already present"
           record.progress = 100
@@ -333,7 +378,7 @@ export const UploadQueue = {
         await putRecord(record)
       }
 
-      const status = await this.fetchStatus(record)
+      const status = await this.fetchStatus(record, controller.signal)
       if (status.duplicate) {
         record.status = "already present"
         record.progress = 100
@@ -356,11 +401,11 @@ export const UploadQueue = {
 
       record.status = "uploading"
       this.render()
-      await this.uploadMissingChunks(record, status.missing_chunks)
+      await this.uploadMissingChunks(record, status.missing_chunks, controller.signal)
 
       record.status = "finalizing"
       this.render()
-      const finalized = await this.finalize(record)
+      const finalized = await this.finalize(record, controller.signal)
       if (finalized.duplicate) {
         record.status = "already present"
         record.progress = 100
@@ -378,17 +423,25 @@ export const UploadQueue = {
       this.removeSoon(record)
       this.updateStorageEstimate()
     } catch (error) {
+      if (this.cancelledIds.has(record.id) || error?.name === "AbortError") {
+        this.log(`upload cancelled ${record.name}`)
+        return
+      }
+
       record.status = "failed upload"
       record.error = String(error)
       await putRecord(record).catch(() => {})
       this.log(`upload failed ${record.name}: ${record.error}`)
       this.render()
+    } finally {
+      this.abortControllers.delete(record.id)
     }
   },
 
-  async createSession(record) {
+  async createSession(record, signal) {
     const response = await this.jsonFetch(`/i/${this.collectionId}/uploads`, {
       method: "POST",
+      signal,
       body: JSON.stringify({
         filename: record.name,
         mime: record.type,
@@ -403,11 +456,11 @@ export const UploadQueue = {
     return response
   },
 
-  async fetchStatus(record) {
-    return this.jsonFetch(`/i/${this.collectionId}/uploads/${record.sessionId}`)
+  async fetchStatus(record, signal) {
+    return this.jsonFetch(`/i/${this.collectionId}/uploads/${record.sessionId}`, {signal})
   },
 
-  async uploadMissingChunks(record, missingChunks) {
+  async uploadMissingChunks(record, missingChunks, signal) {
     const started = performance.now()
     const initialDone = record.totalChunks - missingChunks.length
     let uploaded = initialDone * record.chunkSize
@@ -420,7 +473,7 @@ export const UploadQueue = {
       const end = Math.min(start + record.chunkSize, record.size)
       const chunk = record.file.slice(start, end)
 
-      await this.putChunkWithRetry(record, index, chunk)
+      await this.putChunkWithRetry(record, index, chunk, signal)
 
       uploaded += chunk.size
       doneCount += 1
@@ -434,23 +487,30 @@ export const UploadQueue = {
 
     // Resync: if the server still reports missing chunks (e.g. a stall
     // dropped a write), upload those before finalize.
-    const status = await this.fetchStatus(record)
+    const status = await this.fetchStatus(record, signal)
     if (status.missing_chunks && status.missing_chunks.length) {
       this.log(`re-uploading ${status.missing_chunks.length} chunk(s) reported missing by server`)
-      await this.uploadMissingChunks(record, status.missing_chunks)
+      await this.uploadMissingChunks(record, status.missing_chunks, signal)
     }
   },
 
-  async putChunkWithRetry(record, index, chunk) {
-    const maxAttempts = 4
+  async putChunkWithRetry(record, index, chunk, signal) {
+    // A stalled file must release its queue slot. The local copy remains in
+    // IndexedDB and can be resumed explicitly with the retry button.
+    const maxAttempts = 1
     let attempt = 0
     let lastError
 
     while (attempt < maxAttempts) {
       attempt += 1
       const controller = new AbortController()
-      // 90s per chunk gives slow mobile networks room without hanging forever.
-      const timer = setTimeout(() => controller.abort(), 90_000)
+      const abortAttempt = () => controller.abort()
+      signal.addEventListener("abort", abortAttempt, {once: true})
+      let timedOut = false
+      const timer = setTimeout(() => {
+        timedOut = true
+        controller.abort()
+      }, CHUNK_REQUEST_TIMEOUT_MS)
 
       try {
         const response = await fetch(
@@ -463,29 +523,74 @@ export const UploadQueue = {
           },
         )
 
-        clearTimeout(timer)
-
         if (response.ok) return
 
         const detail = await response.text().catch(() => "")
         lastError = new Error(`chunk ${index} HTTP ${response.status}: ${detail}`)
       } catch (error) {
+        if (timedOut && !signal.aborted) {
+          lastError = new Error(`chunk ${index} timed out after ${Math.round(CHUNK_REQUEST_TIMEOUT_MS / 1000)}s`)
+          lastError.name = "TimeoutError"
+        } else {
+          lastError = error
+        }
+      } finally {
         clearTimeout(timer)
-        lastError = error
+        signal.removeEventListener("abort", abortAttempt)
       }
+
+      if (signal.aborted) throw new DOMException("Upload cancelled", "AbortError")
 
       if (attempt < maxAttempts) {
         const backoff = Math.min(2_000 * attempt, 8_000)
         this.log(`chunk ${index} attempt ${attempt} failed (${String(lastError)}), retrying in ${backoff}ms`)
-        await new Promise(resolve => setTimeout(resolve, backoff))
+        await waitWithSignal(backoff, signal)
       }
     }
 
     throw lastError
   },
 
-  async finalize(record) {
-    return this.jsonFetch(`/i/${this.collectionId}/uploads/${record.sessionId}/finalize`, {method: "POST"})
+  async finalize(record, signal) {
+    return this.jsonFetch(`/i/${this.collectionId}/uploads/${record.sessionId}/finalize`, {
+      method: "POST",
+      signal,
+      timeoutMs: FINALIZE_REQUEST_TIMEOUT_MS,
+    })
+  },
+
+  async cancelUpload(recordId) {
+    const record = this.records.find(item => item.id === recordId)
+    if (!record) return
+
+    this.cancelledIds.add(record.id)
+    this.abortControllers.get(record.id)?.abort()
+    this.records = this.records.filter(item => item.id !== record.id)
+    this.render()
+
+    await deleteRecord(record.id).catch(() => {})
+    this.updateStorageEstimate()
+    this.log(`removed ${record.name} from local upload queue`)
+
+    if (record.sessionId) {
+      try {
+        await this.jsonFetch(`/i/${this.collectionId}/uploads/${record.sessionId}`, {method: "DELETE"})
+        this.log(`cancelled server upload ${record.name}`)
+      } catch (error) {
+        this.log(`server could not cancel ${record.name}: ${String(error)}`)
+      }
+    }
+  },
+
+  async retryUpload(recordId) {
+    const record = this.records.find(item => item.id === recordId)
+    if (!record || record.status !== "failed upload") return
+
+    record.status = "queued"
+    record.error = ""
+    await putRecord(record).catch(() => {})
+    this.render()
+    this.pump()
   },
 
   async refreshServerStates() {
@@ -504,20 +609,51 @@ export const UploadQueue = {
   },
 
   async jsonFetch(url, options = {}) {
-    const response = await fetch(url, {
-      ...options,
-      headers: {
-        "accept": "application/json",
-        "content-type": "application/json",
-        "x-csrf-token": this.csrf,
-        ...(options.headers || {})
-      }
-    })
+    const {
+      timeoutMs = CONTROL_REQUEST_TIMEOUT_MS,
+      signal: parentSignal,
+      headers = {},
+      ...fetchOptions
+    } = options
+    const controller = new AbortController()
+    let timedOut = false
+    const abortFromParent = () => controller.abort()
 
-    const text = await response.text()
-    const body = text ? parseJsonOrText(text) : {}
-    if (!response.ok) throw new Error(`HTTP ${response.status}: ${typeof body === "string" ? body : JSON.stringify(body)}`)
-    return body
+    if (parentSignal?.aborted) throw new DOMException("Upload cancelled", "AbortError")
+    parentSignal?.addEventListener("abort", abortFromParent, {once: true})
+
+    const timer = window.setTimeout(() => {
+      timedOut = true
+      controller.abort()
+    }, timeoutMs)
+
+    try {
+      const response = await fetch(url, {
+        ...fetchOptions,
+        signal: controller.signal,
+        headers: {
+          "accept": "application/json",
+          "content-type": "application/json",
+          "x-csrf-token": this.csrf,
+          ...headers,
+        }
+      })
+
+      const text = await response.text()
+      const body = text ? parseJsonOrText(text) : {}
+      if (!response.ok) throw new Error(`HTTP ${response.status}: ${typeof body === "string" ? body : JSON.stringify(body)}`)
+      return body
+    } catch (error) {
+      if (timedOut && !parentSignal?.aborted) {
+        const timeoutError = new Error(`request timed out after ${Math.round(timeoutMs / 1000)}s`)
+        timeoutError.name = "TimeoutError"
+        throw timeoutError
+      }
+      throw error
+    } finally {
+      window.clearTimeout(timer)
+      parentSignal?.removeEventListener("abort", abortFromParent)
+    }
   },
 
   removeSoon(record) {
@@ -573,12 +709,17 @@ export const UploadQueue = {
           : ""
       const speed = record.status === "uploading" && record.speed ? ` · ${escapeHtml(record.speed)}` : ""
       const pct = isActive ? ` · ${progress}%` : ""
+      const canCancel = !["already present", "processing", "complete"].includes(record.status)
 
       return `
         <article class="bg-white border border-black/[0.06] rounded-[3px] py-2.5 px-3 flex flex-col gap-2 font-brand-sans text-[13.5px]">
-          <div class="flex items-baseline justify-between gap-3">
+          <div class="flex items-center justify-between gap-3">
             <strong class="font-medium text-ink truncate min-w-0">${escapeHtml(record.name)}</strong>
-            <span class="font-brand-mono text-[11.5px] text-mid whitespace-nowrap">${escapeHtml(record.status)}${chunks}${speed}${pct}</span>
+            <div class="flex shrink-0 items-center gap-2">
+              <span class="font-brand-mono text-[11.5px] text-mid whitespace-nowrap">${escapeHtml(record.status)}${chunks}${speed}${pct}</span>
+              ${record.status === "failed upload" ? `<button type="button" data-retry-upload="${escapeHtml(record.id)}" class="rounded-[3px] border border-ink px-2 py-1 text-[11.5px] text-ink hover:bg-ink hover:text-paper">retry</button>` : ""}
+              ${canCancel ? `<button type="button" data-cancel-upload="${escapeHtml(record.id)}" class="rounded-[3px] border border-black/[0.16] px-2 py-1 text-[11.5px] text-mid hover:border-warn hover:text-warn">cancel</button>` : ""}
+            </div>
           </div>
           <div class="h-1 bg-tint overflow-hidden ${isActive ? "queue-bar-active" : ""}">
             <div class="block h-full bg-ink transition-[width] duration-200" style="width:${progress}%"></div>
@@ -618,4 +759,23 @@ function parseJsonOrText(text) {
   } catch (_error) {
     return text
   }
+}
+
+function waitWithSignal(milliseconds, signal) {
+  return new Promise((resolve, reject) => {
+    if (signal.aborted) {
+      reject(new DOMException("Upload cancelled", "AbortError"))
+      return
+    }
+
+    const timer = window.setTimeout(() => {
+      signal.removeEventListener("abort", abort)
+      resolve()
+    }, milliseconds)
+    const abort = () => {
+      window.clearTimeout(timer)
+      reject(new DOMException("Upload cancelled", "AbortError"))
+    }
+    signal.addEventListener("abort", abort, {once: true})
+  })
 }

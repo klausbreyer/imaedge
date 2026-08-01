@@ -30,6 +30,9 @@ defmodule Imaedge.Uploads do
     {:ok, %{missing_chunks: []}}
   end
 
+  def write_chunk(%UploadSession{status: "cancelled"}, _index, _body),
+    do: {:error, :cancelled}
+
   def write_chunk(%UploadSession{} = session, index, body)
       when is_integer(index) and index >= 0 and is_binary(body) do
     if index >= session.total_chunks do
@@ -40,10 +43,22 @@ defmodule Imaedge.Uploads do
 
       path = chunk_path(session, index)
       File.write!(path, body)
-      Media.update_upload_session(session, %{status: "uploading"})
-      {:ok, %{missing_chunks: missing_chunks(session)}}
+
+      case Media.mark_uploading(session) do
+        {:ok, session} ->
+          {:ok, %{missing_chunks: missing_chunks(session)}}
+
+        {:error, :cancelled} = error ->
+          delete_temp(session)
+          error
+
+        {:error, :already_accepted} ->
+          {:ok, %{missing_chunks: []}}
+      end
     end
   end
+
+  def finalize(%UploadSession{status: "cancelled"}), do: {:error, :cancelled}
 
   def finalize(%UploadSession{status: status, object_key: object_key} = session)
       when status in ["processing", "done"] and not is_nil(object_key) do

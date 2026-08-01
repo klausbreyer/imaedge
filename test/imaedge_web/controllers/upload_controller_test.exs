@@ -2,6 +2,7 @@ defmodule ImaedgeWeb.UploadControllerTest do
   use ImaedgeWeb.ConnCase
 
   alias Imaedge.Media
+  alias Imaedge.Uploads
 
   @sha256 String.duplicate("a", 64)
 
@@ -27,6 +28,39 @@ defmodule ImaedgeWeb.UploadControllerTest do
              "image_id" => duplicate.public_id,
              "status" => "done"
            }
+  end
+
+  test "cancel stops an active upload session", %{conn: conn} do
+    {:ok, collection} = Media.create_collection()
+    {:ok, session} = upload_session(collection, "cancel-me.png")
+
+    conn = delete(conn, ~p"/i/#{collection.public_id}/uploads/#{session.public_id}")
+
+    assert json_response(conn, 200) == %{"status" => "cancelled"}
+    assert Media.get_upload_session!(collection, session.public_id).status == "cancelled"
+    assert Media.list_visible_uploads(collection) == []
+  end
+
+  test "a stale chunk request cannot revive a cancelled upload", %{conn: conn} do
+    {:ok, collection} = Media.create_collection()
+    {:ok, session} = upload_session(collection, "cancel-race.png")
+
+    conn = delete(conn, ~p"/i/#{collection.public_id}/uploads/#{session.public_id}")
+    assert json_response(conn, 200) == %{"status" => "cancelled"}
+
+    assert {:error, :cancelled} = Uploads.write_chunk(session, 0, "stale chunk")
+    assert Media.get_upload_session!(collection, session.public_id).status == "cancelled"
+  end
+
+  test "cancel does not remove an accepted upload", %{conn: conn} do
+    {:ok, collection} = Media.create_collection()
+    {:ok, session} = upload_session(collection, "accepted.png")
+    {:ok, _session} = Media.update_upload_session(session, %{status: "processing"})
+
+    conn = delete(conn, ~p"/i/#{collection.public_id}/uploads/#{session.public_id}")
+
+    assert json_response(conn, 409) == %{"error" => "already_accepted"}
+    assert Media.get_upload_session!(collection, session.public_id).status == "processing"
   end
 
   defp collection_with_duplicate do

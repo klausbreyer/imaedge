@@ -127,6 +127,30 @@ defmodule Imaedge.Media do
     end)
   end
 
+  def mark_uploading(%UploadSession{} = session) do
+    now = DateTime.utc_now(:microsecond)
+
+    {updated, _rows} =
+      UploadSession
+      |> where([upload], upload.id == ^session.id)
+      |> where([upload], upload.status in ["created", "uploading", "failed"])
+      |> Repo.update_all(set: [status: "uploading", updated_at: now])
+
+    case updated do
+      1 ->
+        session = Repo.get!(UploadSession, session.id)
+        collection = Repo.get!(Collection, session.collection_id)
+        broadcast(collection, {:upload_changed, session})
+        {:ok, session}
+
+      0 ->
+        case Repo.get!(UploadSession, session.id).status do
+          "cancelled" -> {:error, :cancelled}
+          _status -> {:error, :already_accepted}
+        end
+    end
+  end
+
   def create_processing_image(%UploadSession{} = session, image_secret, object_key, original_url) do
     collection = Repo.get!(Collection, session.collection_id)
     now = DateTime.utc_now(:microsecond)
@@ -196,6 +220,27 @@ defmodule Imaedge.Media do
     |> tap(fn _ -> broadcast(collection, {:collection_changed, collection.public_id}) end)
   end
 
+  def cancel_upload(%Collection{} = collection, upload_public_id) do
+    session = get_upload_session!(collection, upload_public_id)
+    now = DateTime.utc_now(:microsecond)
+
+    {updated, _rows} =
+      UploadSession
+      |> where([upload], upload.id == ^session.id)
+      |> where([upload], upload.status in ["created", "uploading", "failed"])
+      |> Repo.update_all(set: [status: "cancelled", error_message: nil, updated_at: now])
+
+    case updated do
+      1 ->
+        session = Repo.get!(UploadSession, session.id)
+        broadcast(collection, {:upload_changed, session})
+        {:ok, session}
+
+      0 ->
+        {:error, :already_accepted}
+    end
+  end
+
   def move_image(%Collection{} = collection, image_public_id, direction)
       when direction in ["earlier", "later"] do
     images = list_gallery_images(collection)
@@ -210,6 +255,34 @@ defmodule Imaedge.Media do
       nil -> {:error, :not_found}
       :edge -> {:error, :edge}
       error -> error
+    end
+  end
+
+  def reorder_image(%Collection{} = collection, moved_public_id, public_ids)
+      when is_binary(moved_public_id) and is_list(public_ids) do
+    images = list_gallery_images(collection)
+    images_by_id = Map.new(images, &{&1.public_id, &1})
+
+    valid_order? =
+      public_ids != [] and length(public_ids) == length(images) and
+        MapSet.new(public_ids) == MapSet.new(Map.keys(images_by_id)) and
+        Map.has_key?(images_by_id, moved_public_id)
+
+    if valid_order? do
+      reordered = Enum.map(public_ids, &Map.fetch!(images_by_id, &1))
+      moved_index = Enum.find_index(reordered, &(&1.public_id == moved_public_id))
+      moved_image = Map.fetch!(images_by_id, moved_public_id)
+
+      case move_image_to_index(collection, reordered, moved_image, moved_index) do
+        {:ok, _image} ->
+          broadcast(collection, {:images_reordered, collection.public_id})
+          :ok
+
+        {:error, reason} ->
+          {:error, reason}
+      end
+    else
+      {:error, :invalid_order}
     end
   end
 
@@ -312,6 +385,36 @@ defmodule Imaedge.Media do
 
       other ->
         other
+    end
+  end
+
+  defp move_image_to_index(_collection, [_image], image, 0), do: {:ok, image}
+
+  defp move_image_to_index(collection, images, image, index) do
+    left = if index > 0, do: Enum.at(images, index - 1)
+    right = Enum.at(images, index + 1)
+
+    case {left, right} do
+      {nil, right} ->
+        new_time =
+          DateTime.add(right.effective_taken_at, -@rebalance_step_microseconds, :microsecond)
+
+        Image.changeset(image, %{effective_taken_at: new_time}) |> Repo.update()
+
+      {left, nil} ->
+        new_time =
+          DateTime.add(left.effective_taken_at, @rebalance_step_microseconds, :microsecond)
+
+        Image.changeset(image, %{effective_taken_at: new_time}) |> Repo.update()
+
+      {left, right} ->
+        case midpoint(left.effective_taken_at, right.effective_taken_at) do
+          {:ok, new_time} ->
+            Image.changeset(image, %{effective_taken_at: new_time}) |> Repo.update()
+
+          :no_space ->
+            rebalance_images(collection, images, image.public_id)
+        end
     end
   end
 

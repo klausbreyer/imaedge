@@ -4,6 +4,7 @@ defmodule ImaedgeWeb.CollectionLive do
   alias Imaedge.Media
   alias Imaedge.Media.Collection
   alias Imaedge.Media.Image
+  alias Imaedge.Uploads
 
   def mount(%{"id" => public_id}, _session, socket) do
     collection = Media.get_collection_by_public_id!(public_id)
@@ -34,6 +35,13 @@ defmodule ImaedgeWeb.CollectionLive do
   def handle_event("move", %{"id" => image_id, "direction" => direction}, socket) do
     Media.move_image(socket.assigns.collection, image_id, direction)
     {:noreply, reload(socket)}
+  end
+
+  def handle_event("reorder", %{"id" => image_id, "ids" => image_ids}, socket) do
+    case Media.reorder_image(socket.assigns.collection, image_id, image_ids) do
+      :ok -> {:noreply, reload(socket)}
+      {:error, _reason} -> {:noreply, put_flash(socket, :error, "Could not reorder images")}
+    end
   end
 
   def handle_event("set_time", %{"image-id" => image_id, "datetime" => value}, socket) do
@@ -74,6 +82,15 @@ defmodule ImaedgeWeb.CollectionLive do
     {:noreply, reload(socket)}
   end
 
+  def handle_event("cancel_upload", %{"id" => upload_id}, socket) do
+    with {:ok, session} <- Media.cancel_upload(socket.assigns.collection, upload_id),
+         :ok <- Uploads.delete_temp(session) do
+      {:noreply, reload(socket)}
+    else
+      _reason -> {:noreply, put_flash(socket, :error, "Could not cancel upload")}
+    end
+  end
+
   def handle_info(_message, socket) do
     {:noreply, reload(socket)}
   end
@@ -96,9 +113,8 @@ defmodule ImaedgeWeb.CollectionLive do
               id="share-collection-link"
               phx-hook="ShareCollectionLink"
               data-collection-url={url(~p"/i/#{@collection.public_id}")}
-              data-collection-title={Collection.display_name(@collection)}
               class="inline-flex items-center justify-center h-9 max-md:h-8 gap-2 px-3.5 max-md:px-2.5 bg-ink border border-ink rounded-[3px] font-medium text-[13.5px] max-md:text-[12px] leading-none tracking-[-0.005em] text-paper transition-colors hover:bg-white hover:text-ink box-border cursor-pointer"
-              aria-label="share collection link"
+              aria-label="copy collection link"
             >
               <svg
                 class="w-3.5 h-3.5 stroke-current stroke-[1.8] fill-none"
@@ -106,21 +122,8 @@ defmodule ImaedgeWeb.CollectionLive do
               >
                 <path d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7M12 15V3m-5 5 5-5 5 5" />
               </svg>
-              <span>share</span>
+              <span>copy link</span>
             </button>
-
-            <a
-              class="inline-flex items-center justify-center h-9 max-md:h-8 gap-2 px-3.5 max-md:px-2.5 bg-white border border-ink rounded-[3px] font-medium text-[13.5px] max-md:text-[12px] leading-none tracking-[-0.005em] text-ink transition-colors hover:bg-ink hover:text-paper box-border"
-              href={~p"/i/#{@collection.public_id}/export"}
-            >
-              <svg
-                class="w-3.5 h-3.5 stroke-current stroke-[1.8] fill-none"
-                viewBox="0 0 24 24"
-              >
-                <path d="M5 12v6a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-6M12 3v12m-5-5 5 5 5-5" />
-              </svg>
-              <span>export</span>
-            </a>
           </div>
         </div>
 
@@ -258,6 +261,16 @@ defmodule ImaedgeWeb.CollectionLive do
                     {upload.error_message}
                   </code>
                 </div>
+                <div :if={upload.status in ["created", "uploading"]} class="flex gap-1.5">
+                  <button
+                    type="button"
+                    phx-click="cancel_upload"
+                    phx-value-id={upload.public_id}
+                    class="px-2.5 py-1.5 border border-black/[0.20] rounded-[3px] text-[12.5px] text-mid hover:border-warn hover:text-warn"
+                  >
+                    cancel
+                  </button>
+                </div>
                 <div :if={upload.status == "failed"} class="flex gap-1.5">
                   <button
                     type="button"
@@ -312,11 +325,16 @@ defmodule ImaedgeWeb.CollectionLive do
                 <figure
                   :for={{dom_id, image} <- @streams.images}
                   id={dom_id}
-                  class="brand-tile relative flex flex-col gap-0"
+                  data-gallery-id={image.public_id}
+                  draggable="true"
+                  class="brand-tile relative flex flex-col gap-0 transition-[opacity,transform] duration-150"
                 >
                   <div class="brand-tile-img relative aspect-square overflow-hidden rounded-[2px] max-[760px]:rounded-none bg-tint">
                     <a
-                      href={Image.public_preview_large_url(image) || Image.public_original_url(image)}
+                      href={Image.public_original_url(image)}
+                      data-lightbox-src={
+                        Image.public_preview_large_url(image) || Image.public_original_url(image)
+                      }
                       class="block w-full h-full"
                     >
                       <img
@@ -325,6 +343,7 @@ defmodule ImaedgeWeb.CollectionLive do
                           Image.public_preview_small_url(image) || Image.public_original_url(image)
                         }
                         loading="lazy"
+                        draggable="false"
                         alt={image.original_filename}
                       />
                     </a>
@@ -341,6 +360,27 @@ defmodule ImaedgeWeb.CollectionLive do
                     >
                       <button
                         type="button"
+                        data-drag-handle
+                        class="flex-1 h-[34px] max-md:h-[30px] grid place-items-center bg-black/[0.12] text-white transition-colors backdrop-blur-md hover:bg-black/[0.45] cursor-grab active:cursor-grabbing [touch-action:none]"
+                        aria-label="drag to reorder"
+                        title="Drag to reorder"
+                      >
+                        <svg
+                          class="w-[15px] h-[15px] max-md:w-[13px] max-md:h-[13px] fill-current"
+                          viewBox="0 0 24 24"
+                          aria-hidden="true"
+                        >
+                          <circle cx="8" cy="7" r="1.5" />
+                          <circle cx="16" cy="7" r="1.5" />
+                          <circle cx="8" cy="12" r="1.5" />
+                          <circle cx="16" cy="12" r="1.5" />
+                          <circle cx="8" cy="17" r="1.5" />
+                          <circle cx="16" cy="17" r="1.5" />
+                        </svg>
+                      </button>
+                      <button
+                        type="button"
+                        data-no-drag
                         class="flex-1 h-[34px] max-md:h-[30px] grid place-items-center bg-black/[0.12] text-white transition-colors backdrop-blur-md hover:bg-black/[0.45] cursor-pointer"
                         aria-label="move earlier"
                         phx-click="move"
@@ -360,6 +400,7 @@ defmodule ImaedgeWeb.CollectionLive do
                       </button>
                       <button
                         type="button"
+                        data-no-drag
                         class="flex-1 h-[34px] max-md:h-[30px] grid place-items-center bg-black/[0.12] text-white transition-colors backdrop-blur-md hover:bg-black/[0.45] cursor-pointer"
                         aria-label="move later"
                         phx-click="move"
@@ -378,6 +419,7 @@ defmodule ImaedgeWeb.CollectionLive do
                         </svg>
                       </button>
                       <label
+                        data-no-drag
                         class="relative flex-1 h-[34px] max-md:h-[30px] grid place-items-center bg-black/[0.12] text-white transition-colors backdrop-blur-md hover:bg-black/[0.45] cursor-pointer"
                         aria-label="edit album time"
                       >
@@ -406,6 +448,7 @@ defmodule ImaedgeWeb.CollectionLive do
                       </label>
                       <button
                         type="button"
+                        data-no-drag
                         class="flex-1 h-[34px] max-md:h-[30px] grid place-items-center bg-black/[0.12] text-white transition-colors backdrop-blur-md hover:bg-[rgba(226,106,72,0.65)] cursor-pointer"
                         aria-label="delete"
                         data-delete-id={image.public_id}
@@ -434,6 +477,86 @@ defmodule ImaedgeWeb.CollectionLive do
                   </figcaption>
                 </figure>
               </div>
+
+              <dialog
+                id="gallery-lightbox"
+                class="fixed inset-0 z-[100] m-0 h-[100dvh] max-h-none w-screen max-w-none overflow-hidden bg-black/[0.96] p-0 text-white backdrop:bg-black/[0.96]"
+                aria-label="image viewer"
+              >
+                <div class="relative h-full w-full overflow-hidden">
+                  <div class="absolute inset-x-0 top-0 z-20 flex items-center justify-between gap-3 px-3 py-2.5 max-md:px-2">
+                    <span
+                      data-lightbox-count
+                      class="font-brand-mono text-[11px] tracking-[0.04em] text-white/65"
+                    >
+                    </span>
+                    <div class="flex items-center gap-2">
+                      <a
+                        data-lightbox-original
+                        href="#"
+                        class="inline-flex h-9 items-center rounded-[3px] border border-white/25 px-3 font-brand-sans text-[12px] text-white hover:border-white"
+                      >
+                        open original
+                      </a>
+                      <button
+                        type="button"
+                        data-lightbox-close
+                        class="grid h-9 w-9 place-items-center rounded-[3px] border border-white/25 text-white hover:border-white"
+                        aria-label="close image viewer"
+                      >
+                        <svg class="h-4 w-4 stroke-current stroke-2" viewBox="0 0 24 24">
+                          <path d="M5 5l14 14M19 5L5 19" />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+
+                  <div
+                    data-lightbox-stage
+                    class="absolute inset-0 flex items-center justify-center overflow-hidden px-12 pb-12 pt-16 [touch-action:pan-y] max-md:px-0"
+                  >
+                    <div
+                      data-lightbox-loading
+                      class="absolute inset-0 grid place-items-center font-brand-mono text-[11px] tracking-[0.04em] text-white/60"
+                    >
+                      loading image
+                    </div>
+                    <img
+                      data-lightbox-image
+                      src=""
+                      alt=""
+                      class="hidden max-h-full max-w-full select-none object-contain"
+                      draggable="false"
+                    />
+                    <button
+                      type="button"
+                      data-lightbox-prev
+                      class="absolute left-2 top-1/2 grid h-12 w-10 -translate-y-1/2 place-items-center rounded-[3px] bg-black/30 text-white backdrop-blur-sm hover:bg-black/60 max-md:hidden"
+                      aria-label="previous image"
+                    >
+                      <svg class="h-5 w-5 fill-none stroke-current stroke-2" viewBox="0 0 24 24">
+                        <path d="M15 18l-6-6 6-6" />
+                      </svg>
+                    </button>
+                    <button
+                      type="button"
+                      data-lightbox-next
+                      class="absolute right-2 top-1/2 grid h-12 w-10 -translate-y-1/2 place-items-center rounded-[3px] bg-black/30 text-white backdrop-blur-sm hover:bg-black/60 max-md:hidden"
+                      aria-label="next image"
+                    >
+                      <svg class="h-5 w-5 fill-none stroke-current stroke-2" viewBox="0 0 24 24">
+                        <path d="M9 18l6-6-6-6" />
+                      </svg>
+                    </button>
+                  </div>
+
+                  <p
+                    data-lightbox-caption
+                    class="pointer-events-none absolute inset-x-0 bottom-0 z-20 truncate px-4 py-3 text-center font-brand-sans text-[12px] text-white/65"
+                  >
+                  </p>
+                </div>
+              </dialog>
 
               <p
                 :if={@image_count == 0}
