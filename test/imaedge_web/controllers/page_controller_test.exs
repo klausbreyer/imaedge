@@ -35,7 +35,7 @@ defmodule ImaedgeWeb.PageControllerTest do
     assert collection.name == "Norway Roadtrip"
   end
 
-  test "collection page copies its single collection link", %{conn: conn} do
+  test "collection page shares on mobile and copies on desktop", %{conn: conn} do
     {:ok, collection} = Media.create_collection(%{name: "Beach Phone Dump"})
 
     {:ok, _view, html} = live(conn, ~p"/i/#{collection.public_id}")
@@ -46,9 +46,17 @@ defmodule ImaedgeWeb.PageControllerTest do
     assert html =~ ~s(/i/#{collection.public_id})
     refute html =~ ~s(href="/i/#{collection.public_id}/export")
     refute html =~ ~s(href="/i/#{collection.public_id}")
-    assert html =~ "copy collection link"
+    assert html =~ "share or copy collection link"
     refute html =~ "export HTML"
-    assert html =~ "copy link"
+
+    assert html =~
+             ~r/<span(?=[^>]*data-share-label)(?=[^>]*class="md:hidden")[^>]*>share<\/span>/
+
+    assert html =~
+             ~r/<span(?=[^>]*data-share-label)(?=[^>]*class="max-md:hidden")[^>]*>copy<\/span>/
+
+    refute html =~ "start a collection"
+    assert html =~ ~s(id="gallery-lightbox" phx-update="ignore")
   end
 
   test "collection page includes share metadata", %{conn: conn} do

@@ -1,5 +1,6 @@
 const DRAG_THRESHOLD = 6
 const SWIPE_THRESHOLD = 48
+const TOUCH_DRAG_DELAY_MS = 180
 
 export const GalleryActions = {
   mounted() {
@@ -18,6 +19,7 @@ export const GalleryActions = {
     this.lightboxOriginal = this.lightbox?.querySelector("[data-lightbox-original]")
     this.lightboxCount = this.lightbox?.querySelector("[data-lightbox-count]")
     this.lightboxCaption = this.lightbox?.querySelector("[data-lightbox-caption]")
+    this.lightboxDate = this.lightbox?.querySelector("[data-lightbox-date]")
     this.lightboxStage = this.lightbox?.querySelector("[data-lightbox-stage]")
 
     this.el.addEventListener("click", event => this.handleClick(event))
@@ -52,6 +54,7 @@ export const GalleryActions = {
 
   destroyed() {
     window.removeEventListener("keydown", this.boundKeydown)
+    if (this.pointerDrag?.timer) window.clearTimeout(this.pointerDrag.timer)
     this.resetLightbox()
   },
 
@@ -127,18 +130,26 @@ export const GalleryActions = {
 
     if (event.pointerType === "mouse") return
 
-    const handle = event.target.closest("[data-drag-handle]")
-    if (!handle || !this.el.contains(handle)) return
+    const surface = event.target.closest("[data-gallery-drag-surface]")
+    if (!surface || !this.el.contains(surface)) return
 
-    const figure = handle.closest("[data-gallery-id]")
-    this.pointerDrag = {
+    const figure = surface.closest("[data-gallery-id]")
+    const pointer = {
       id: event.pointerId,
       figure,
       startX: event.clientX,
       startY: event.clientY,
+      lastY: event.clientY,
       started: false,
+      scrolling: false,
     }
-    handle.setPointerCapture(event.pointerId)
+    pointer.timer = window.setTimeout(() => {
+      if (this.pointerDrag !== pointer || pointer.scrolling) return
+      pointer.started = true
+      this.beginReorder(pointer.figure)
+    }, TOUCH_DRAG_DELAY_MS)
+    this.pointerDrag = pointer
+    surface.setPointerCapture(event.pointerId)
   },
 
   handlePointerMove(event) {
@@ -146,10 +157,26 @@ export const GalleryActions = {
     if (!pointer || pointer.id !== event.pointerId) return
 
     if (!pointer.started) {
-      const distance = Math.hypot(event.clientX - pointer.startX, event.clientY - pointer.startY)
+      const deltaX = event.clientX - pointer.startX
+      const deltaY = event.clientY - pointer.startY
+      const distance = Math.hypot(deltaX, deltaY)
       if (distance < DRAG_THRESHOLD) return
-      pointer.started = true
-      this.beginReorder(pointer.figure)
+
+      window.clearTimeout(pointer.timer)
+      if (Math.abs(deltaX) > Math.abs(deltaY)) {
+        pointer.started = true
+        this.beginReorder(pointer.figure)
+      } else {
+        pointer.scrolling = true
+      }
+    }
+
+    if (pointer.scrolling) {
+      event.preventDefault()
+      window.scrollBy(0, pointer.lastY - event.clientY)
+      pointer.lastY = event.clientY
+      this.suppressClickUntil = performance.now() + 350
+      return
     }
 
     event.preventDefault()
@@ -164,7 +191,14 @@ export const GalleryActions = {
     const pointer = this.pointerDrag
     if (!pointer || pointer.id !== event.pointerId) return
 
+    window.clearTimeout(pointer.timer)
     this.pointerDrag = null
+    if (pointer.scrolling) {
+      event.preventDefault()
+      this.suppressClickUntil = performance.now() + 350
+      return
+    }
+
     if (pointer.started) {
       event.preventDefault()
       this.suppressClickUntil = performance.now() + 350
@@ -236,6 +270,7 @@ export const GalleryActions = {
     const src = link.dataset.lightboxSrc
     const expectedSrc = new URL(src, document.baseURI).href
     const alt = link.querySelector("img")?.alt || ""
+    const date = link.dataset.lightboxDate || ""
     const token = ++this.lightboxLoadToken
 
     this.lightboxLoading.textContent = "loading image"
@@ -245,6 +280,7 @@ export const GalleryActions = {
     this.lightboxOriginal.href = link.href
     this.lightboxCount.textContent = `${this.lightboxIndex + 1} / ${links.length}`
     this.lightboxCaption.textContent = alt
+    this.lightboxDate.textContent = date
 
     this.lightboxImage.onload = () => {
       if (

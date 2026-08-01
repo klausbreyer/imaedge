@@ -97,7 +97,7 @@ defmodule ImaedgeWeb.CollectionLive do
 
   def render(assigns) do
     ~H"""
-    <Layouts.workspace flash={@flash} live?={true}>
+    <Layouts.workspace flash={@flash} live?={true} show_new_collection={false}>
       <section class="max-w-[1320px] mx-auto px-8 max-md:px-3 max-[460px]:px-2.5 py-[clamp(56px,7vw,96px)] pb-[clamp(56px,6vw,88px)] max-md:pt-3 max-md:pb-3 max-[460px]:pt-2.5 max-[460px]:pb-3">
         <div class="flex flex-wrap items-end justify-between gap-x-4 gap-y-2 mb-6 max-md:mb-4 brand-reveal opacity-0 translate-y-2 motion-safe:animate-rise">
           <p class="font-brand-sans text-[13px] max-md:text-[11px] text-mid tracking-[-0.005em]">
@@ -113,8 +113,9 @@ defmodule ImaedgeWeb.CollectionLive do
               id="share-collection-link"
               phx-hook="ShareCollectionLink"
               data-collection-url={url(~p"/i/#{@collection.public_id}")}
+              data-collection-title={Collection.display_name(@collection)}
               class="inline-flex items-center justify-center h-9 max-md:h-8 gap-2 px-3.5 max-md:px-2.5 bg-ink border border-ink rounded-[3px] font-medium text-[13.5px] max-md:text-[12px] leading-none tracking-[-0.005em] text-paper transition-colors hover:bg-white hover:text-ink box-border cursor-pointer"
-              aria-label="copy collection link"
+              aria-label="share or copy collection link"
             >
               <svg
                 class="w-3.5 h-3.5 stroke-current stroke-[1.8] fill-none"
@@ -122,7 +123,8 @@ defmodule ImaedgeWeb.CollectionLive do
               >
                 <path d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7M12 15V3m-5 5 5-5 5 5" />
               </svg>
-              <span>copy link</span>
+              <span data-share-label class="md:hidden">share</span>
+              <span data-share-label class="max-md:hidden">copy</span>
             </button>
           </div>
         </div>
@@ -329,11 +331,17 @@ defmodule ImaedgeWeb.CollectionLive do
                   draggable="true"
                   class="brand-tile relative flex flex-col gap-0 transition-[opacity,transform] duration-150"
                 >
-                  <div class="brand-tile-img relative aspect-square overflow-hidden rounded-[2px] max-[760px]:rounded-none bg-tint">
+                  <div
+                    data-gallery-drag-surface
+                    class="brand-tile-img relative aspect-square overflow-hidden rounded-[2px] max-[760px]:rounded-none bg-tint cursor-grab active:cursor-grabbing select-none [touch-action:none] [-webkit-touch-callout:none]"
+                  >
                     <a
                       href={Image.public_original_url(image)}
                       data-lightbox-src={
                         Image.public_preview_large_url(image) || Image.public_original_url(image)
+                      }
+                      data-lightbox-date={
+                        format_album_date(image.effective_taken_at, image.timezone_offset_minutes)
                       }
                       class="block w-full h-full"
                     >
@@ -358,26 +366,6 @@ defmodule ImaedgeWeb.CollectionLive do
                       role="toolbar"
                       aria-label="image actions"
                     >
-                      <button
-                        type="button"
-                        data-drag-handle
-                        class="flex-1 h-[34px] max-md:h-[30px] grid place-items-center bg-black/[0.12] text-white transition-colors backdrop-blur-md hover:bg-black/[0.45] cursor-grab active:cursor-grabbing [touch-action:none]"
-                        aria-label="drag to reorder"
-                        title="Drag to reorder"
-                      >
-                        <svg
-                          class="w-[15px] h-[15px] max-md:w-[13px] max-md:h-[13px] fill-current"
-                          viewBox="0 0 24 24"
-                          aria-hidden="true"
-                        >
-                          <circle cx="8" cy="7" r="1.5" />
-                          <circle cx="16" cy="7" r="1.5" />
-                          <circle cx="8" cy="12" r="1.5" />
-                          <circle cx="16" cy="12" r="1.5" />
-                          <circle cx="8" cy="17" r="1.5" />
-                          <circle cx="16" cy="17" r="1.5" />
-                        </svg>
-                      </button>
                       <button
                         type="button"
                         data-no-drag
@@ -480,6 +468,7 @@ defmodule ImaedgeWeb.CollectionLive do
 
               <dialog
                 id="gallery-lightbox"
+                phx-update="ignore"
                 class="fixed inset-0 z-[100] m-0 h-[100dvh] max-h-none w-screen max-w-none overflow-hidden bg-black/[0.96] p-0 text-white backdrop:bg-black/[0.96]"
                 aria-label="image viewer"
               >
@@ -550,10 +539,13 @@ defmodule ImaedgeWeb.CollectionLive do
                     </button>
                   </div>
 
-                  <p
-                    data-lightbox-caption
-                    class="pointer-events-none absolute inset-x-0 bottom-0 z-20 truncate px-4 py-3 text-center font-brand-sans text-[12px] text-white/65"
-                  >
+                  <p class="pointer-events-none absolute inset-x-0 bottom-0 z-20 flex items-baseline justify-center gap-2 truncate px-4 py-3 text-center font-brand-sans text-[12px] text-white/65">
+                    <span data-lightbox-caption class="truncate"></span>
+                    <time
+                      data-lightbox-date
+                      class="shrink-0 font-brand-mono text-[10.5px] text-white/45"
+                    >
+                    </time>
                   </p>
                 </div>
               </dialog>
