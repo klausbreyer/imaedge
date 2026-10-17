@@ -50,6 +50,15 @@ class DeploymentTest(unittest.TestCase):
         with self.assertRaises(RuntimeError):
             deploy.ready_pod(overview)
 
+    def test_restored_old_image_is_not_a_successful_deployment(self):
+        overview = {"status": "active", "regions": [{"pods": [{
+            "name": "replacement", "status": "ready",
+            "containers": [{"status": "ready", "imageDisplay": "imaedge:old"}],
+        }]}]}
+        self.assertIsNone(deploy.ready_pod(overview, "new"))
+        overview["regions"][0]["pods"][0]["containers"][0]["imageDisplay"] = "imaedge:new"
+        self.assertEqual(deploy.ready_pod(overview, "new"), "replacement")
+
 
 if __name__ == "__main__":
     unittest.main()

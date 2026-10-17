@@ -55,11 +55,16 @@ def validate_app(app, config):
     return container
 
 
-def ready_pod(overview):
+def ready_pod(overview, image_tag=None):
     pods = [pod for region in overview["regions"] for pod in region["pods"]]
     ready = [pod for pod in pods if pod["status"] == "ready"]
     require(len(ready) <= 1, "More than one ready pod detected.")
     if overview["status"] == "active" and len(pods) == len(ready) == 1:
+        if image_tag is not None and not any(
+            container["status"] == "ready" and container["imageDisplay"] == f"imaedge:{image_tag}"
+            for container in ready[0]["containers"]
+        ):
+            return None
         return ready[0]["name"]
     return None
 
@@ -108,7 +113,7 @@ def deploy(check_only=False):
     deadline = time.monotonic() + 900
     while time.monotonic() < deadline:
         overview = api("GET", base + "/overview")
-        pod = ready_pod(overview)
+        pod = ready_pod(overview, tag)
         if pod and (not changed or pod != old_pod):
             live = validate_app(api("GET", base), config)
             require(live["imageDigest"] == digest, "Deployed image changed unexpectedly.")

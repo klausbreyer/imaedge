@@ -7,6 +7,15 @@ files to transfer. Hetzner Postgres and Tigris remain in place.
 
 ## Pipeline
 
+Bunny app ID: `7h8OXpOEr3k6dyw`. Pull Zone: `6820180`.
+Endpoint: `mc-2bwurpor46.bunny.run`. Production CNAME target:
+`mc-2bwurpor46.b-cdn.net`.
+
+Migration state on 2026-10-17: Bunny is healthy with workers and startup migrations
+disabled. The `www.imaedge.org` certificate is issued and HTTPS is enforced.
+Public DNS still points to Fly. The GitHub deployment key and traffic/worker
+handoff are pending. Do not stop Fly until the handoff below is complete.
+
 `.github/workflows/deploy.yml` runs `mix precommit` and deployment safeguard tests,
 then publishes `ghcr.io/klausbreyer/imaedge:<commit SHA>` for Linux AMD64.
 Build provenance is disabled so Bunny and GitHub compare the same image digest.
@@ -55,6 +64,12 @@ upload chunks and Phoenix PubSub are local to one node.
    GitHub Actions. Verify upload processing before completing the migration.
 
 ## Rollback
+
+Original `www` records (DNS-only, TTL 300): `A 66.241.124.106` and
+`AAAA 2a09:8280:1::11a:7d39:0`. The apex redirects to `https://www.imaedge.org/`.
+Fly Machine: `d8d3297c171e48`, region `fra`.
+An owner-only backup of its runtime settings and Machine configuration is stored
+outside Git at `~/Backups/imaedge/20261017-bunny/`.
 
 Keep `fly.toml`, the Fly app, Fly secret, and Tigris organization. Do not delete
 them as part of the hosting migration. Tigris can still be billed through Fly.
