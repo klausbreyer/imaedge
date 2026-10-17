@@ -29,6 +29,7 @@ erl_crash.dump
 
 # Temporary files, for example, from tests.
 /tmp/
+__pycache__/
 
 # Ignore package tarball (built via "mix hex.build").
 imaedge-*.tar

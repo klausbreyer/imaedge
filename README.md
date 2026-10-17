@@ -71,9 +71,9 @@ mix phx.server
 
 Without `BUCKET_NAME`, development falls back to `priv/static/objects`.
 
-## Fly production
+## Bunny production
 
-The production Fly app is:
+The production Bunny Magic Containers app is:
 
 ```text
 imaedge
@@ -85,9 +85,11 @@ The production Tigris bucket is:
 imaedge-prod
 ```
 
-Deployments use `fly.toml`, run release migrations, and keep Oban inside the app process.
+GitHub Actions builds an AMD64 image in GHCR and deploys it to one Bunny instance
+in Germany. Postgres stays at Hetzner and all image objects stay in Tigris.
+See [deployment and rollback instructions](docs/bunny-deployment.md).
 
-Required Fly secrets:
+Required container secrets, preserved by deployments:
 
 ```text
 DATABASE_URL
@@ -97,9 +99,11 @@ AWS_SECRET_ACCESS_KEY
 AWS_ENDPOINT_URL_S3
 AWS_REGION
 BUCKET_NAME
+ADMIN_USERNAME
+ADMIN_PASSWORD
 ```
 
-Public object URLs are configured in `fly.toml` with:
+Public object URLs are configured in `bunny.json` with:
 
 ```text
 TIGRIS_PUBLIC_BASE_URL=https://assets.imaedge.org

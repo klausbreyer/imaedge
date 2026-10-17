@@ -47,8 +47,8 @@ Videos are out of scope for the MVP. Live Photos are not guaranteed through brow
 The stack is fixed for this project:
 
 - Phoenix
-- Postgres hosted outside Fly
-- Fly.io for the Phoenix app
+- Postgres hosted at Hetzner
+- Bunny Magic Containers for the Phoenix app
 - Tigris object storage
 - Oban inside the Phoenix app process
 - One Phoenix node for the MVP
@@ -57,7 +57,7 @@ The stack is fixed for this project:
 - Own resumable chunk upload API, no `tusd`
 - Minimal JavaScript, vanilla unless a real need appears
 
-Do not introduce Cloudflare for this project unless the user explicitly changes the decision.
+Cloudflare hosts DNS and the apex redirect. Application traffic goes directly to Bunny.
 
 ## Local Development
 
@@ -84,20 +84,18 @@ If the user asks to stop the server, stop any running local Phoenix process and 
 
 ## Production
 
-Fly app:
-
-- `imaedge`
-
-Fly org:
-
-- `klaus-imaedge-breyer`
+Bunny app: `imaedge`, one instance in `DE`. See `docs/bunny-deployment.md`.
+Fly app `imaedge` in `klaus-imaedge-breyer` is retained for rollback and Tigris billing.
+Do not delete the Fly app, organization, or Tigris resources.
 
 Tigris buckets:
 
 - Production: `imaedge-prod`
 - Local development: `imaedge-dev-local`
 
-Deployment uses `fly.toml` and the Dockerfile. Release migrations are run through `Imaedge.Release`.
+Deployment uses `.github/workflows/deploy.yml`, `bunny.json`, and the Dockerfile.
+Release migrations run through `Imaedge.Release` at startup when `RUN_MIGRATIONS=true`.
+The mounted `single-instance` volume enforces stop-before-start updates. Never add replicas or regions.
 
 Required production secrets:
 
@@ -108,6 +106,11 @@ Required production secrets:
 - `AWS_ENDPOINT_URL_S3`
 - `AWS_REGION`
 - `BUCKET_NAME`
+- `ADMIN_USERNAME`
+- `ADMIN_PASSWORD`
+
+Runtime secrets stay in Bunny and are preserved by deployment updates.
+GitHub Actions needs `BUNNYNET_API_KEY` and the `BUNNY_APP_ID` repository variable.
 
 The database URL uses SSL verification. The CA file is copied into the image as `/app/sqlca.pem`.
 

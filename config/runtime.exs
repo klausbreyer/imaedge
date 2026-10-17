@@ -26,6 +26,11 @@ config :imaedge, ImaedgeWeb.Endpoint,
 if config_env() == :prod do
   config :imaedge, Imaedge.Repo, Imaedge.Repo.RuntimeConfig.build()
 
+  # Keep Fly as the only worker during the hosting transition.
+  if System.get_env("OBAN_ENABLED", "true") == "false" do
+    config :imaedge, Oban, queues: false, plugins: false
+  end
+
   admin_username =
     case System.get_env("ADMIN_USERNAME") do
       value when is_binary(value) and value != "" ->
@@ -78,11 +83,8 @@ if config_env() == :prod do
   config :imaedge, ImaedgeWeb.Endpoint,
     url: [host: host, port: 443, scheme: "https"],
     http: [
-      # Enable IPv6 and bind on all interfaces.
-      # Set it to  {0, 0, 0, 0, 0, 0, 0, 1} for local network only access.
-      # See the documentation on https://hexdocs.pm/bandit/Bandit.html#t:options/0
-      # for details about using IPv6 vs IPv4 and loopback vs public addresses.
-      ip: {0, 0, 0, 0, 0, 0, 0, 0},
+      # Bunny's CDN endpoint reaches the container over IPv4.
+      ip: {0, 0, 0, 0},
       port: port
     ],
     secret_key_base: secret_key_base
