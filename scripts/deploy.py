@@ -51,7 +51,7 @@ def validate_app(app, config):
     environment = {item["name"]: item["value"] for item in container["environmentVariables"]}
     for name in REQUIRED_ENV:
         require(bool(environment.get(name)), f"Missing runtime setting: {name}")
-    require(environment["BUCKET_NAME"] == "imaedge-prod", "Refusing a different Tigris bucket.")
+    require(environment["BUCKET_NAME"] == "imaedge-prod", "Refusing a different production bucket.")
     return container
 
 
@@ -69,10 +69,13 @@ def ready_pod(overview, image_digest=None):
     return None
 
 
-def desired_patch(container, config, tag, digest):
-    # Merge public settings, never erase or replace the existing production secrets.
+def desired_patch(container, config, tag, digest, storage=None):
+    # Preserve app secrets. Storage credentials come from the configured Bunny zone.
     environment = {item["name"]: item["value"] for item in container["environmentVariables"]}
     environment.update(config["environment"])
+    if storage is not None:
+        environment.update(storage)
+        environment.pop("TIGRIS_PUBLIC_BASE_URL", None)
     return {
         "imageTag": tag, "imageDigest": digest, "imagePullPolicy": "always",
         "environmentVariables": [{"name": name, "value": value}
@@ -102,7 +105,8 @@ def deploy(check_only=False):
         "imageName": "imaedge", "tag": tag,
     })
     require(image["digest"] == digest, "Registry digest differs from the built image.")
-    patch = desired_patch(container, config, tag, digest)
+    storage = storage_environment(config["storage"], api("GET", "/storagezone/" + str(config["storage"]["zone_id"])))
+    patch = desired_patch(container, config, tag, digest, storage)
     changed = any(container.get(key) != value for key, value in patch.items())
     replace_pod = requires_replacement(container, patch)
     require(old_pod is not None or app["status"] == "inactive",
@@ -118,6 +122,7 @@ def deploy(check_only=False):
         if pod and (not replace_pod or pod != old_pod):
             live = validate_app(api("GET", base), config)
             require(live["imageDigest"] == digest, "Deployed image changed unexpectedly.")
+            require(not requires_replacement(live, patch), "Runtime settings changed unexpectedly.")
             print(f"Deployment ready: {pod}, imaedge:{tag} ({digest}).", flush=True)
             return
         time.sleep(5)
@@ -131,6 +136,18 @@ def requires_replacement(container, patch):
     return (container["imageDigest"] != patch["imageDigest"] or
             container.get("imagePullPolicy") != patch["imagePullPolicy"] or
             environment(container) != environment(patch))
+
+
+def storage_environment(config, zone):
+    require(zone["Id"] == config["zone_id"] and zone["Name"] == config["zone_name"],
+            "Unexpected Bunny storage zone.")
+    require(config["zone_name"] == "imaedge-prod", "Expected the production storage zone.")
+    require(zone["Region"].lower() == config["region"] and
+            "https://" + zone["S3Hostname"] == config["endpoint"], "Unexpected storage endpoint.")
+    require(bool(zone.get("Password")), "Missing storage credentials.")
+    return {"AWS_ACCESS_KEY_ID": zone["Name"], "AWS_SECRET_ACCESS_KEY": zone["Password"],
+            "AWS_ENDPOINT_URL_S3": config["endpoint"], "AWS_REGION": config["region"],
+            "BUCKET_NAME": zone["Name"]}
 
 
 if __name__ == "__main__":

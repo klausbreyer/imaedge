@@ -3,7 +3,8 @@
 The migration follows `texttile/demo-bunny`: one instance in Germany, a mounted
 volume to serialize replacements, immutable image digests, WebSockets, and no
 CDN caching. Unlike Texttile, imaedge has no SQLite database or permanent image
-files to transfer. Hetzner Postgres and Tigris remain in place.
+files on the app server to transfer. Hetzner Postgres stays in place. Image
+objects are copied from Tigris to Bunny Storage without changing their keys.
 
 ## Pipeline
 
@@ -15,7 +16,7 @@ Migration state on 2026-10-17: public DNS points to Bunny, the production
 certificate is issued, and HTTPS is enforced. The deployment key is configured
 in GitHub. Fly's ingest queue was paused and drained before stopping its Machine
 and disabling automatic starts and restarts. The pipeline now enables Bunny
-workers and startup migrations. Hetzner Postgres and Tigris remain unchanged.
+workers and startup migrations. Hetzner Postgres remains unchanged.
 
 `.github/workflows/deploy.yml` runs `mix precommit` and deployment safeguard tests,
 then publishes `ghcr.io/klausbreyer/imaedge:<commit SHA>` for Linux AMD64.
@@ -33,9 +34,11 @@ gh secret set BUNNYNET_API_KEY --repo klausbreyer/imaedge
 gh variable set BUNNY_APP_ID --repo klausbreyer/imaedge --body '<APP_ID>'
 ```
 
-Runtime secrets are copied from Fly once and remain in Bunny. The pipeline
-preserves them, including the signing key, database URL, Tigris credentials,
-and admin login. Only public settings from `bunny.json` are overwritten.
+Application secrets were copied from Fly once and remain in Bunny. The pipeline
+preserves the signing key, database URL, and admin login. It resolves storage
+credentials from the Bunny zone identified by `storage` in `bunny.json` and
+updates the S3 settings together with the image. Only that zone's credentials
+and public settings are replaced. No additional GitHub storage secret is needed.
 Do not use the local `.env`, which points to the development bucket.
 
 ## Container and networking
@@ -47,7 +50,7 @@ Do not use the local `.env`, which points to the development bucket.
 - TCP startup and readiness checks on port 8080, with HTTP from CDN to origin.
 - CDN endpoint with WebSockets enabled, caching disabled, and HTTPS enforced.
 - `www.imaedge.org` points to the Bunny CDN hostname, DNS-only in Cloudflare.
-- The apex redirect and `assets.imaedge.org` / `dev-assets.imaedge.org` stay in place.
+- The apex redirect stays in place. The two asset domains use their storage Pull Zones.
 
 Updates briefly interrupt connections. Do not enable autoscaling or add regions:
 upload chunks and Phoenix PubSub are local to one node.
@@ -66,6 +69,43 @@ upload chunks and Phoenix PubSub are local to one node.
 7. Set `OBAN_ENABLED=true` and `RUN_MIGRATIONS=true` in `bunny.json` and deploy through
    GitHub Actions. Verify upload processing before completing the migration.
 
+## Object storage
+
+| Environment | Storage zone | Pull Zone | Location | Public CNAME |
+| --- | --- | --- | --- | --- |
+| Production | `imaedge-prod` (`1998691`) | `6820279` | Frankfurt, replica in Stockholm | `imaedge-prod.b-cdn.net` |
+| Development | `imaedge-dev-local` (`1998692`) | `6820281` | Frankfurt | `imaedge-dev-local.b-cdn.net` |
+
+Both zones use Standard storage with S3 enabled at creation. S3 is currently
+in public preview. The application uses only PUT, GET, and DELETE, verified
+against Bunny using its existing SigV4 implementation. The S3 endpoint is
+`https://de-s3.storage.bunnycdn.com` and the signing region is `de`.
+
+Public URLs remain `https://assets.imaedge.org/<key>` and
+`https://dev-assets.imaedge.org/<key>`. DNS records are DNS-only. Certificates
+are issued with external DNS validation before changing either CNAME. Image
+optimization is disabled, so originals are delivered unchanged. CDN caching
+is disabled during migration; storage access requires credentials and listing
+is not public.
+
+Migration procedure:
+
+1. Back up the original production credentials and local `.env` outside Git.
+2. List both Tigris buckets, copy every object, then read each copy back and
+   compare SHA-256. Save source inventories and verified manifests in the backup.
+3. Build and test the release through CI with `BUNNY_APP_ID` temporarily unset.
+4. Stop writes by undeploying the Bunny app and stopping any local dev server.
+   Copy the final delta before switching storage domains and credentials.
+5. Wait for the old DNS TTL, restore `BUNNY_APP_ID`, and rerun the pipeline's
+   build/deploy job. The pipeline resolves the new storage credentials and
+   starts the app. Update the local `.env` to the separate dev zone.
+6. Verify a complete upload and both previews, plus existing image hashes.
+
+The old Tigris buckets are retained without changes and still incur storage
+charges through Fly until explicitly retired. They do not receive new uploads
+after cutover. The owner-only backup includes credentials, manifests, and the
+original `.env`; never commit or print these files.
+
 ## Rollback
 
 Original `www` records (DNS-only, TTL 300): `A 66.241.124.106` and
@@ -75,7 +115,13 @@ An owner-only backup of its runtime settings and Machine configuration is stored
 outside Git at `~/Backups/imaedge/20261017-bunny/`.
 
 Keep `fly.toml`, the Fly app, Fly secret, and Tigris organization. Do not delete
-them as part of the hosting migration. Tigris can still be billed through Fly.
+them as part of the migration. Tigris can still be billed through Fly.
+After the storage cutover, the retained Fly release has old Tigris credentials:
+do not restart it against a stale bucket. First either configure it for the new
+Bunny storage or copy new and changed Bunny objects back to Tigris under a write
+pause. Restore the storage CNAMEs only after that copy and checksum verification.
+The original targets were `imaedge-prod.t3.tigrisbucket.io` and
+`imaedge-dev-local.t3.tigrisbucket.io`, both with TTL 300.
 Before restarting Fly, pause and drain Bunny workers and deploy
 `OBAN_ENABLED=false`. Then start the retained Fly Machine, restore its original
 auto-start/restart settings and saved DNS records, and verify HTTPS and uploads.

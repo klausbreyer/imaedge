@@ -26,7 +26,7 @@ config :imaedge, ImaedgeWeb.Endpoint,
 if config_env() == :prod do
   config :imaedge, Imaedge.Repo, Imaedge.Repo.RuntimeConfig.build()
 
-  # Keep Fly as the only worker during the hosting transition.
+  # Allow a single worker host during hosting transitions and rollback.
   if System.get_env("OBAN_ENABLED", "true") == "false" do
     config :imaedge, Oban, queues: false, plugins: false
   end
@@ -75,10 +75,10 @@ if config_env() == :prod do
   config :imaedge, :dns_cluster_query, System.get_env("DNS_CLUSTER_QUERY")
 
   config :imaedge, :object_storage,
-    adapter: Imaedge.Storage.Tigris,
+    adapter: Imaedge.Storage.S3,
     bucket_name: System.get_env("BUCKET_NAME"),
-    endpoint: System.get_env("AWS_ENDPOINT_URL_S3") || "https://t3.storage.dev",
-    public_base_url: System.get_env("TIGRIS_PUBLIC_BASE_URL")
+    endpoint: System.get_env("AWS_ENDPOINT_URL_S3"),
+    public_base_url: System.get_env("OBJECT_STORAGE_PUBLIC_BASE_URL")
 
   config :imaedge, ImaedgeWeb.Endpoint,
     url: [host: host, port: 443, scheme: "https"],

@@ -117,7 +117,7 @@ config :phoenix_live_view,
 
 if System.get_env("BUCKET_NAME") do
   config :imaedge, :object_storage,
-    adapter: Imaedge.Storage.Tigris,
+    adapter: Imaedge.Storage.S3,
     bucket_name: System.get_env("BUCKET_NAME"),
     endpoint: System.get_env("AWS_ENDPOINT_URL_S3") || "https://t3.storage.dev",
     public_base_url: System.get_env("TIGRIS_PUBLIC_BASE_URL")

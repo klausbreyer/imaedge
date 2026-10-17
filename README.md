@@ -40,12 +40,12 @@ Install dependencies and set up the database:
 mix setup
 ```
 
-Local development can use the local filesystem object store, or the same Tigris object storage path as production.
+Local development can use the local filesystem object store, or Bunny Storage through its S3 API.
 
-For Tigris-backed local development, create a local env file from `.env.example` and fill in the Tigris dev bucket credentials:
+For Bunny-backed local development, create a local env file from `.env.example` and fill in the development storage zone credentials:
 
 ```sh
-cp .env.example .env.local
+cp .env.example .env
 ```
 
 The dev bucket currently used by the project is:
@@ -64,7 +64,7 @@ Load the local env file before starting Phoenix, for example:
 
 ```sh
 set -a
-source .env.local
+source .env
 set +a
 mix phx.server
 ```
@@ -79,17 +79,19 @@ The production Bunny Magic Containers app is:
 imaedge
 ```
 
-The production Tigris bucket is:
+The production Bunny Storage zone is:
 
 ```text
 imaedge-prod
 ```
 
 GitHub Actions builds an AMD64 image in GHCR and deploys it to one Bunny instance
-in Germany. Postgres stays at Hetzner and all image objects stay in Tigris.
+in Germany. Postgres stays at Hetzner. Original images and previews are stored in
+Bunny Storage in Frankfurt with replication to Stockholm. The development zone
+is separate and uses Frankfurt only.
 See [deployment and rollback instructions](docs/bunny-deployment.md).
 
-Required container secrets, preserved by deployments:
+Required container settings:
 
 ```text
 DATABASE_URL
@@ -103,37 +105,25 @@ ADMIN_USERNAME
 ADMIN_PASSWORD
 ```
 
+The pipeline preserves app/database secrets and resolves storage credentials from
+the Bunny zone configured in `bunny.json`. S3 support is currently a public preview.
 Public object URLs are configured in `bunny.json` with:
 
 ```text
-TIGRIS_PUBLIC_BASE_URL=https://assets.imaedge.org
+OBJECT_STORAGE_PUBLIC_BASE_URL=https://assets.imaedge.org
 ```
 
-The production bucket custom domain setup is:
-
-```sh
-flyctl storage update imaedge-prod --custom-domain assets.imaedge.org
-```
-
-DNS needs a CNAME record:
+The storage domains use Bunny Pull Zones and DNS-only CNAME records:
 
 ```text
-assets.imaedge.org CNAME imaedge-prod.t3.tigrisbucket.io
+assets.imaedge.org CNAME imaedge-prod.b-cdn.net
+dev-assets.imaedge.org CNAME imaedge-dev-local.b-cdn.net
 ```
 
-Keep the CNAME in place so Tigris can issue and renew TLS certificates. If the domain is managed through Cloudflare or a similar DNS provider, keep the record in DNS-only mode so TLS terminates at Tigris.
-
-The dev bucket uses the same setup:
-
-```sh
-flyctl storage update imaedge-dev-local --custom-domain dev-assets.imaedge.org
-```
-
-DNS needs this CNAME record:
-
-```text
-dev-assets.imaedge.org CNAME imaedge-dev-local.t3.tigrisbucket.io
-```
+Keep both records DNS-only so TLS terminates at Bunny. The S3 API endpoint is
+`https://de-s3.storage.bunnycdn.com`, region `de`. The access key is the storage
+zone name and the secret key is its password. Never use production credentials
+for local development.
 
 To start your Phoenix server:
 

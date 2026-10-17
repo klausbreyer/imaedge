@@ -67,6 +67,23 @@ class DeploymentTest(unittest.TestCase):
         patch["environmentVariables"].append({"name": "OBAN_ENABLED", "value": "true"})
         self.assertTrue(deploy.requires_replacement(container, patch))
 
+    def test_storage_cutover_preserves_database_and_session_secrets(self):
+        config = {"zone_id": 42, "zone_name": "imaedge-prod", "region": "de",
+                  "endpoint": "https://de-s3.storage.bunnycdn.com"}
+        zone = {"Id": 42, "Name": "imaedge-prod", "Region": "DE",
+                "S3Hostname": "de-s3.storage.bunnycdn.com", "Password": "new-storage-secret"}
+        storage = deploy.storage_environment(config, zone)
+        container = self.app["containerTemplates"][0]
+        patch = deploy.desired_patch(container, {"environment": {}}, "new", "digest", storage)
+        result = {item["name"]: item["value"] for item in patch["environmentVariables"]}
+        self.assertEqual(result["AWS_SECRET_ACCESS_KEY"], "new-storage-secret")
+        self.assertEqual(result["DATABASE_URL"], "preserved")
+        self.assertEqual(result["SECRET_KEY_BASE"], "preserved")
+        self.assertEqual(result["ADMIN_PASSWORD"], "preserved")
+        for changed in ({"Name": "imaedge-dev-local"}, {"S3Hostname": "unexpected.example"}, {"Password": ""}):
+            with self.subTest(changed=changed), self.assertRaises(RuntimeError):
+                deploy.storage_environment(config, dict(zone, **changed))
+
 
 if __name__ == "__main__":
     unittest.main()
