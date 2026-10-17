@@ -52,7 +52,8 @@ EXPOSE 8080
 
 COPY --from=builder --chown=appuser:appuser /app/_build/prod/rel/imaedge ./
 COPY --chown=appuser:appuser sqlca.pem ./sqlca.pem
+COPY --chown=appuser:appuser scripts/start.sh ./bin/start
 
 USER appuser
 
-CMD ["/app/bin/imaedge", "start"]
+CMD ["/bin/sh", "/app/bin/start"]

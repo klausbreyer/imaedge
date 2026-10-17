@@ -1,0 +1,10 @@
+.git
+.env
+.env.*
+_build
+deps
+tmp
+assets/node_modules
+priv/static/objects
+erl_crash.dump
+**/__pycache__

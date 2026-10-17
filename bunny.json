@@ -1,0 +1,19 @@
+{
+  "region": "DE",
+  "storage": {
+    "zone_id": 1998691,
+    "zone_name": "imaedge-prod",
+    "endpoint": "https://de-s3.storage.bunnycdn.com",
+    "region": "de"
+  },
+  "environment": {
+    "PHX_HOST": "www.imaedge.org",
+    "PHX_SERVER": "true",
+    "PORT": "8080",
+    "POOL_SIZE": "5",
+    "OBJECT_STORAGE_PUBLIC_BASE_URL": "https://assets.imaedge.org",
+    "OBAN_ENABLED": "true",
+    "RUN_MIGRATIONS": "true",
+    "ERL_AFLAGS": "+S 1:1 +SDcpu 1 +SDio 1 +sbwt none +sbwtdcpu none +sbwtdio none"
+  }
+}

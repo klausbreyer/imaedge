@@ -118,7 +118,7 @@ defmodule Imaedge.Uploads do
     else
       {:duplicate, existing_image, orphan_key} ->
         # Race: another upload landed the same SHA256 first. Drop the
-        # original we just put in Tigris and resolve as a duplicate.
+        # original we just stored and resolve as a duplicate.
         Logger.info(
           "finalize duplicate resolved session=#{session.public_id} sha256=#{session.sha256} existing_image=#{existing_image.public_id}"
         )

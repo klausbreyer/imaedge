@@ -1,7 +1,7 @@
-defmodule Imaedge.Storage.Tigris do
+defmodule Imaedge.Storage.S3 do
   @moduledoc false
 
-  # Originals can be tens of megabytes and Tigris is upstream, so give the
+  # Originals can be tens of megabytes and storage is upstream, so give the
   # PUT a generous receive_timeout. The default Req timeout is too short for
   # mobile uploads of full-resolution photos.
   @put_receive_timeout :timer.minutes(5)
@@ -23,7 +23,7 @@ defmodule Imaedge.Storage.Tigris do
         {:ok, public_url(key)}
 
       {:ok, response} ->
-        {:error, {:tigris_put_failed, response.status, response.body}}
+        {:error, {:s3_put_failed, response.status, response.body}}
 
       {:error, reason} ->
         {:error, reason}
@@ -39,7 +39,7 @@ defmodule Imaedge.Storage.Tigris do
            retry: false
          ) do
       {:ok, %{status: status}} when status in [200, 202, 204, 404] -> :ok
-      {:ok, response} -> {:error, {:tigris_delete_failed, response.status, response.body}}
+      {:ok, response} -> {:error, {:s3_delete_failed, response.status, response.body}}
       {:error, reason} -> {:error, reason}
     end
   end
@@ -63,7 +63,7 @@ defmodule Imaedge.Storage.Tigris do
         {:ok, path}
 
       {:ok, response} ->
-        {:error, {:tigris_get_failed, response.status, response.body}}
+        {:error, {:s3_get_failed, response.status, response.body}}
 
       {:error, reason} ->
         {:error, reason}
@@ -126,11 +126,13 @@ defmodule Imaedge.Storage.Tigris do
   defp maybe_put_header(headers, key, value), do: [{key, value} | headers]
 
   defp endpoint do
-    System.get_env("AWS_ENDPOINT_URL_S3") || "https://t3.storage.dev"
+    System.fetch_env!("AWS_ENDPOINT_URL_S3")
   end
 
   defp public_base_url do
-    System.get_env("TIGRIS_PUBLIC_BASE_URL") || "https://#{bucket_name()}.t3.tigrisfiles.io"
+    System.get_env("OBJECT_STORAGE_PUBLIC_BASE_URL") ||
+      System.get_env("TIGRIS_PUBLIC_BASE_URL") ||
+      raise "environment variable OBJECT_STORAGE_PUBLIC_BASE_URL is missing"
   end
 
   defp bucket_name do
@@ -148,6 +150,6 @@ defmodule Imaedge.Storage.Tigris do
   end
 
   defp region do
-    System.get_env("AWS_REGION") || "auto"
+    System.fetch_env!("AWS_REGION")
   end
 end

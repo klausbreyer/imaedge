@@ -47,9 +47,9 @@ Videos are out of scope for the MVP. Live Photos are not guaranteed through brow
 The stack is fixed for this project:
 
 - Phoenix
-- Postgres hosted outside Fly
-- Fly.io for the Phoenix app
-- Tigris object storage
+- Postgres hosted at Hetzner
+- Bunny Magic Containers for the Phoenix app
+- Bunny Storage through its S3 API
 - Oban inside the Phoenix app process
 - One Phoenix node for the MVP
 - Phoenix Channels for realtime updates
@@ -57,7 +57,7 @@ The stack is fixed for this project:
 - Own resumable chunk upload API, no `tusd`
 - Minimal JavaScript, vanilla unless a real need appears
 
-Do not introduce Cloudflare for this project unless the user explicitly changes the decision.
+Cloudflare hosts DNS and the apex redirect. Application traffic goes directly to Bunny.
 
 ## Local Development
 
@@ -84,20 +84,21 @@ If the user asks to stop the server, stop any running local Phoenix process and 
 
 ## Production
 
-Fly app:
+Bunny app: `imaedge`, one instance in `DE`. See `docs/bunny-deployment.md`.
+Fly app `imaedge` in `klaus-imaedge-breyer` is stopped and retained for rollback.
+Do not delete the Fly app, organization, or Tigris resources.
 
-- `imaedge`
+Bunny Storage zones (S3 endpoint `https://de-s3.storage.bunnycdn.com`, region `de`):
 
-Fly org:
+- Production: `imaedge-prod`, Frankfurt with Stockholm replication
+- Local development: `imaedge-dev-local`, Frankfurt
 
-- `klaus-imaedge-breyer`
+The previous Tigris buckets remain as migration backups. They are no longer the
+active write targets. Do not delete them without explicit instructions.
 
-Tigris buckets:
-
-- Production: `imaedge-prod`
-- Local development: `imaedge-dev-local`
-
-Deployment uses `fly.toml` and the Dockerfile. Release migrations are run through `Imaedge.Release`.
+Deployment uses `.github/workflows/deploy.yml`, `bunny.json`, and the Dockerfile.
+Release migrations run through `Imaedge.Release` at startup when `RUN_MIGRATIONS=true`.
+The mounted `single-instance` volume enforces stop-before-start updates. Never add replicas or regions.
 
 Required production secrets:
 
@@ -108,6 +109,11 @@ Required production secrets:
 - `AWS_ENDPOINT_URL_S3`
 - `AWS_REGION`
 - `BUCKET_NAME`
+- `ADMIN_USERNAME`
+- `ADMIN_PASSWORD`
+
+Runtime secrets stay in Bunny and are preserved by deployment updates.
+GitHub Actions needs `BUNNYNET_API_KEY` and the `BUNNY_APP_ID` repository variable.
 
 The database URL uses SSL verification. The CA file is copied into the image as `/app/sqlca.pem`.
 
@@ -115,7 +121,7 @@ The database URL uses SSL verification. The CA file is copied into the image as 
 
 Postgres stores metadata and status.
 
-Tigris stores:
+Bunny Storage stores:
 
 - Original image files
 - Small previews
@@ -135,7 +141,7 @@ collections/<collection_id>/<image_secret>/preview-large.webp
 
 `image_secret` is independent from the public image ID and must not be reused.
 
-The Tigris bucket may be public for direct object URLs, but object paths must be unguessable and bucket listing must not be public.
+Public object URLs use Bunny CDN, but object paths must be unguessable and bucket listing must not be public.
 
 ## Upload Flow
 
@@ -174,11 +180,11 @@ Finalize sequence:
 4. Client sends finalize.
 5. Server assembles the local temp file.
 6. Server verifies SHA-256.
-7. Server uploads original to Tigris.
+7. Server uploads original to Bunny Storage.
 8. Server creates processing image state.
 9. Server enqueues Oban ingest.
 
-Finalize responds only after the original is in Tigris and the ingest job has been started.
+Finalize responds only after the original is in object storage and the ingest job has been started.
 
 ## Ingest
 
@@ -186,22 +192,22 @@ Ingest runs in Oban.
 
 Ingest should:
 
-- Fetch original from Tigris.
+- Fetch original from object storage.
 - Verify the image is decodable.
 - Read selected EXIF fields when available.
 - Generate small WebP preview.
 - Generate large WebP preview.
-- Upload previews to Tigris.
+- Upload previews to object storage.
 - Mark image as complete.
 - Broadcast realtime updates.
 
 Ingest failure policy:
 
 - Retry automatically through Oban.
-- After final failure, keep the original in Tigris.
+- After final failure, keep the original in object storage.
 - Show the failed upload in the server processing area, not in the gallery.
 - Any user with the collection link can retry or remove a failed upload.
-- Removing a failed upload should delete the related Tigris objects.
+- Removing a failed upload should delete the related stored objects.
 
 ## Sorting And Time
 
@@ -247,7 +253,7 @@ This is a tool, not a marketing page.
 
 Be careful around:
 
-- Tigris SigV4 signing in `Imaedge.Storage.Tigris`.
+- S3 SigV4 signing in `Imaedge.Storage.S3`.
 - Idempotent finalize behavior in `Imaedge.Uploads`.
 - IndexedDB queue cleanup in `assets/js/upload_queue.js`.
 - Hetzner Postgres SSL config in `Imaedge.Repo.RuntimeConfig`.
@@ -264,7 +270,7 @@ mix precommit
 make start
 ```
 
-Manual Tigris-backed upload checks should use `.env`, but never print its contents:
+Manual Bunny-backed upload checks should use `.env`, but never print its contents:
 
 ```sh
 set -a
