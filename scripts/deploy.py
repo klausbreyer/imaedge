@@ -107,11 +107,12 @@ def deploy(check_only=False):
     require(image["digest"] == digest, "Registry digest differs from the built image.")
     storage = storage_environment(config["storage"], api("GET", "/storagezone/" + str(config["storage"]["zone_id"])))
     patch = desired_patch(container, config, tag, digest, storage)
-    changed = any(container.get(key) != value for key, value in patch.items())
     replace_pod = requires_replacement(container, patch)
     require(old_pod is not None or app["status"] == "inactive",
             "App is unhealthy or updating. Inspect Bunny before deploying.")
-    if changed:
+    # A tag-only PATCH can leave Bunny progressing although the same image is ready.
+    # The verified digest identifies the artifact; keep its existing tag in that case.
+    if replace_pod:
         api("PATCH", base + "/containers/" + container["id"], patch)
     if app["status"] == "inactive":
         api("POST", base + "/deploy")
@@ -123,7 +124,7 @@ def deploy(check_only=False):
             live = validate_app(api("GET", base), config)
             require(live["imageDigest"] == digest, "Deployed image changed unexpectedly.")
             require(not requires_replacement(live, patch), "Runtime settings changed unexpectedly.")
-            print(f"Deployment ready: {pod}, imaedge:{tag} ({digest}).", flush=True)
+            print(f"Deployment ready: {pod}, {digest} (built from {tag}).", flush=True)
             return
         time.sleep(5)
     raise RuntimeError("Deployment did not finish within 15 minutes. Inspect Bunny before retrying.")
