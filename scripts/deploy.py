@@ -55,13 +55,13 @@ def validate_app(app, config):
     return container
 
 
-def ready_pod(overview, image_tag=None):
+def ready_pod(overview, image_digest=None):
     pods = [pod for region in overview["regions"] for pod in region["pods"]]
     ready = [pod for pod in pods if pod["status"] == "ready"]
     require(len(ready) <= 1, "More than one ready pod detected.")
     if overview["status"] == "active" and len(pods) == len(ready) == 1:
-        if image_tag is not None and not any(
-            container["status"] == "ready" and container["imageDisplay"] == f"imaedge:{image_tag}"
+        if image_digest is not None and not any(
+            container["status"] == "ready" and container["image"].endswith("@" + image_digest)
             for container in ready[0]["containers"]
         ):
             return None
@@ -104,6 +104,7 @@ def deploy(check_only=False):
     require(image["digest"] == digest, "Registry digest differs from the built image.")
     patch = desired_patch(container, config, tag, digest)
     changed = any(container.get(key) != value for key, value in patch.items())
+    replace_pod = requires_replacement(container, patch)
     require(old_pod is not None or app["status"] == "inactive",
             "App is unhealthy or updating. Inspect Bunny before deploying.")
     if changed:
@@ -113,14 +114,23 @@ def deploy(check_only=False):
     deadline = time.monotonic() + 900
     while time.monotonic() < deadline:
         overview = api("GET", base + "/overview")
-        pod = ready_pod(overview, tag)
-        if pod and (not changed or pod != old_pod):
+        pod = ready_pod(overview, digest)
+        if pod and (not replace_pod or pod != old_pod):
             live = validate_app(api("GET", base), config)
             require(live["imageDigest"] == digest, "Deployed image changed unexpectedly.")
             print(f"Deployment ready: {pod}, imaedge:{tag} ({digest}).", flush=True)
             return
         time.sleep(5)
     raise RuntimeError("Deployment did not finish within 15 minutes. Inspect Bunny before retrying.")
+
+
+def requires_replacement(container, patch):
+    # Bunny keeps the pod when only a tag changes and its image digest is identical.
+    environment = lambda settings: {item["name"]: item["value"]
+                                    for item in settings["environmentVariables"]}
+    return (container["imageDigest"] != patch["imageDigest"] or
+            container.get("imagePullPolicy") != patch["imagePullPolicy"] or
+            environment(container) != environment(patch))
 
 
 if __name__ == "__main__":

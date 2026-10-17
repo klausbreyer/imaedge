@@ -53,11 +53,19 @@ class DeploymentTest(unittest.TestCase):
     def test_restored_old_image_is_not_a_successful_deployment(self):
         overview = {"status": "active", "regions": [{"pods": [{
             "name": "replacement", "status": "ready",
-            "containers": [{"status": "ready", "imageDisplay": "imaedge:old"}],
+            "containers": [{"status": "ready", "image": "registry/imaedge@sha256:old"}],
         }]}]}
-        self.assertIsNone(deploy.ready_pod(overview, "new"))
-        overview["regions"][0]["pods"][0]["containers"][0]["imageDisplay"] = "imaedge:new"
-        self.assertEqual(deploy.ready_pod(overview, "new"), "replacement")
+        self.assertIsNone(deploy.ready_pod(overview, "sha256:new"))
+        overview["regions"][0]["pods"][0]["containers"][0]["image"] = "registry/imaedge@sha256:new"
+        self.assertEqual(deploy.ready_pod(overview, "sha256:new"), "replacement")
+
+    def test_identical_image_with_new_tag_does_not_require_restart(self):
+        container = self.app["containerTemplates"][0]
+        container.update(imageTag="old", imageDigest="digest", imagePullPolicy="always")
+        patch = deploy.desired_patch(container, {"environment": {}}, "new", "digest")
+        self.assertFalse(deploy.requires_replacement(container, patch))
+        patch["environmentVariables"].append({"name": "OBAN_ENABLED", "value": "true"})
+        self.assertTrue(deploy.requires_replacement(container, patch))
 
 
 if __name__ == "__main__":
