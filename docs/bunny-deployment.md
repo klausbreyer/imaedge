@@ -11,16 +11,19 @@ Bunny app ID: `7h8OXpOEr3k6dyw`. Pull Zone: `6820180`.
 Endpoint: `mc-2bwurpor46.bunny.run`. Production CNAME target:
 `mc-2bwurpor46.b-cdn.net`.
 
-Migration state on 2026-10-17: Bunny is healthy with workers and startup migrations
-disabled. The `www.imaedge.org` certificate is issued and HTTPS is enforced.
-Public DNS still points to Fly. The GitHub deployment key and traffic/worker
-handoff are pending. Do not stop Fly until the handoff below is complete.
+Migration state on 2026-10-17: public DNS points to Bunny, the production
+certificate is issued, and HTTPS is enforced. The deployment key is configured
+in GitHub. Fly's ingest queue was paused and drained before stopping its Machine
+and disabling automatic starts and restarts. The pipeline now enables Bunny
+workers and startup migrations. Hetzner Postgres and Tigris remain unchanged.
 
 `.github/workflows/deploy.yml` runs `mix precommit` and deployment safeguard tests,
 then publishes `ghcr.io/klausbreyer/imaedge:<commit SHA>` for Linux AMD64.
 Build provenance is disabled so Bunny and GitHub compare the same image digest.
 When `BUNNY_APP_ID` is set, it updates the existing Bunny container and waits for
-one replacement pod to be ready. Running deployments are never cancelled.
+one pod on the requested image digest to be ready. Image or runtime changes
+require a replacement; a new tag for the same image can keep the existing pod.
+Running deployments are never cancelled by newer pushes.
 During migration, the `migrate-to-bunny` branch also runs this pipeline.
 
 Configure the deployment key through the hidden CLI prompt:
@@ -77,6 +80,7 @@ Before restarting Fly, pause and drain Bunny workers and deploy
 `OBAN_ENABLED=false`. Then start the retained Fly Machine, restore its original
 auto-start/restart settings and saved DNS records, and verify HTTPS and uploads.
 Restore the Fly workflow from Git history if future releases must run on Fly.
+The old workflow is disabled in GitHub; re-enable it explicitly for rollback.
 Do not run deployments on both hosts concurrently. Database migrations must
 remain compatible with the retained release while rollback is needed.
 
