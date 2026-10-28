@@ -55,6 +55,19 @@ Do not use the local `.env`, which points to the development bucket.
 Updates briefly interrupt connections. Do not enable autoscaling or add regions:
 upload chunks and Phoenix PubSub are local to one node.
 
+`RELEASE_MODE=interactive` loads compiled modules on first use instead of
+preloading every module at boot, reducing the release's initial memory use.
+All configured applications still start normally. The first call to a module
+pays its loading cost; later calls reuse it. See the
+[Mix release documentation](https://hexdocs.pm/mix/1.19.5/Mix.Tasks.Release.html#module-environment-variables).
+
+Compare memory after the old pod has stopped and the replacement has handled
+collection views, uploads, preview generation, exports, and WebSocket updates.
+An immediate post-restart reading does not represent warmed memory use.
+Image processing also allocates native memory, so the savings may differ from
+other Phoenix applications. Keep startup and readiness checks enabled, and
+verify uploads and ingest after deployment.
+
 ## Handoff
 
 1. Publish the image through GitHub Actions.
