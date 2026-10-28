@@ -14,6 +14,7 @@
     "OBJECT_STORAGE_PUBLIC_BASE_URL": "https://assets.imaedge.org",
     "OBAN_ENABLED": "true",
     "RUN_MIGRATIONS": "true",
+    "RELEASE_MODE": "interactive",
     "ERL_AFLAGS": "+S 1:1 +SDcpu 1 +SDio 1 +sbwt none +sbwtdcpu none +sbwtdio none"
   }
 }
