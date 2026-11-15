@@ -12,7 +12,7 @@ With imaedge, anyone can create a secret link and share it with others. Everyone
 
 You can also adjust the order of the images by changing the date from the EXIF data. I paid special attention to the upload itself too: images are uploaded in small chunks. In the places where we often travel, reception is bad. Normal uploads take forever, break, or leave you guessing what state the upload is actually in.
 
-imaedge is open source, in case you want to host it for yourself.
+imaedge is open source under the [MIT License](LICENSE), in case you want to host it for yourself.
 
 If you ever want to collect original photos together, without accounts, without compression, without constant syncing, and without a lot of fuss: that is what this is built for.
 
@@ -28,7 +28,7 @@ Damit kann jeder einen geheimen Link erstellen und mit anderen teilen. Alle mit 
 
 Man kann außerdem die Reihenfolge der Bilder anpassen, indem man das Datum aus den EXIF-Daten ändert. Besonders wichtig war mir auch der Upload selbst: Die Bilder werden in kleine Chunks aufgeteilt hochgeladen. Gerade dort, wo wir oft Urlaub machen, ist der Empfang schlecht. Normale Uploads dauern ewig, brechen ab, oder man weiß nicht, in welchem Zustand sie gerade sind.
 
-imaedge ist Open Source, falls ihr es für euch selbst aufsetzen wollt.
+imaedge ist Open Source unter der [MIT-Lizenz](LICENSE), falls ihr es für euch selbst aufsetzen wollt.
 
 Falls ihr also mal gemeinsam Originalfotos sammeln wollt, ohne Account, ohne Komprimierung, ohne dauerndes Synchronisieren und ohne großes Theater: Dafür ist es gebaut.
 
